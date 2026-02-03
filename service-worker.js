@@ -49,7 +49,7 @@ self.addEventListener('fetch', event => {
           .then(networkResponse => {
             // Only cache valid responses
             if (networkResponse && networkResponse.status === 200) {
-              const responseClone = networkResponse.clone();
+              //const responseClone = networkResponse.clone();
               cache.put(event.request, networkResponse.clone());
 
               if (event.request.url.includes('rules.md')) {
