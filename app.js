@@ -3,7 +3,7 @@ let activeCategory = null; // TRACKER: Remembers what is currently open
 
 async function loadData() {
   try {
-    const res = await fetch(`data/rules.md?t=${Date.now()}`);
+    const res = await fetch('data/rules.md');
     const text = await res.text();
     rulesData = parseMarkdown(text);
     renderMenu();
