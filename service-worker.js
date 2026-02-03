@@ -1,4 +1,4 @@
-const CACHE_NAME = 'qref-ops-v4'; // bump version when core files change
+const CACHE_NAME = 'qref-ops-v5'; // bump version when core files change
 
 const ASSETS = [
   './',
