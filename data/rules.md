@@ -47,3 +47,9 @@
 ## New First Officer
 
 - Cannot land
+
+# New CA
+
+## New Captain
+
+- cannot AIII
