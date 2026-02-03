@@ -41,3 +41,9 @@
 
 - Check lithium battery logs
 - Verify secure tie-downs
+
+# New FO
+
+## New First Officer
+
+- Cannot land
