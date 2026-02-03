@@ -2,7 +2,7 @@
 
 ## Low Visibility
 
-- If visibility is less than 200m
+- If Foo is less than 200m
 - Turn on high intensity runway lights
 - Notify tower immediately
 
