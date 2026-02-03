@@ -1,17 +1,13 @@
-const CACHE_NAME = 'qref-ops-v5'; // bump version when core files change
-
+const CACHE_NAME = 'qref-ops-v6'; // Bumped to v6
 const ASSETS = [
   './',
   './index.html',
   './style.css',
   './app.js',
   './manifest.json',
-  './data/rules.md'
+  // REMOVED rules.md from here. We will cache it dynamically.
 ];
 
-// ----------------------------
-// INSTALL
-// ----------------------------
 self.addEventListener('install', event => {
   self.skipWaiting();
   event.waitUntil(
@@ -19,76 +15,75 @@ self.addEventListener('install', event => {
   );
 });
 
-// ----------------------------
-// ACTIVATE
-// ----------------------------
 self.addEventListener('activate', event => {
   event.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(
-        keys
-          .filter(key => key !== CACHE_NAME)
-          .map(key => caches.delete(key))
-      )
-    )
+    caches.keys().then(keys => Promise.all(
+      keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key))
+    ))
   );
-  self.clients.claim();
+  return self.clients.claim();
 });
 
-// ----------------------------
-// FETCH
-// ----------------------------
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
 
-  const url = event.request.url;
+  event.respondWith(
+    caches.open(CACHE_NAME).then(async (cache) => {
+      const cachedResponse = await cache.match(event.request);
+      
+      // 1. Prepare the Network Request
+      // If it's rules.md, add a random number to FORCE a real network call
+      let networkRequest = event.request;
+      if (event.request.url.includes('rules.md')) {
+         const newUrl = new URL(event.request.url);
+         newUrl.searchParams.set('cb', Date.now()); // Cache Buster
+         networkRequest = new Request(newUrl);
+      }
 
-  // 🔁 SPECIAL HANDLING FOR rules.md (network-first + diff + notify)
-  if (url.includes('data/rules.md')) {
-    event.respondWith(
-      fetch(event.request)
-        .then(async networkResponse => {
-          const cache = await caches.open(CACHE_NAME);
-          const cachedResponse = await cache.match(event.request);
+      // 2. Fetch Logic
+      const fetchPromise = fetch(networkRequest)
+        .then(async (networkResponse) => {
+          if (networkResponse && networkResponse.status === 200) {
+            
+            // IMPORTANT: We must store it using the ORIGINAL request (clean URL)
+            // or the app won't find it later.
+            const responseToCache = networkResponse.clone();
+            const responseToCompare = networkResponse.clone();
 
-          const newText = await networkResponse.clone().text();
-          let shouldNotify = false;
+            if (event.request.url.includes('rules.md')) {
+              let shouldNotify = false;
+              
+              if (cachedResponse) {
+                const oldText = await cachedResponse.clone().text();
+                const newText = await responseToCompare.text();
+                if (oldText !== newText) {
+                  shouldNotify = true;
+                }
+              } else {
+                // First load ever? Don't notify, just show.
+                shouldNotify = false;
+              }
 
-          if (cachedResponse) {
-            const oldText = await cachedResponse.clone().text();
-            if (oldText !== newText) {
-              shouldNotify = true;
+              // Save to cache using the CLEAN event.request (no timestamp)
+              await cache.put(event.request, responseToCache);
+
+              if (shouldNotify) {
+                self.clients.matchAll().then(clients => {
+                  clients.forEach(client => client.postMessage({ type: 'UPDATE_AVAILABLE' }));
+                });
+              }
+            } else {
+              // Normal caching for other files
+              cache.put(event.request, responseToCache);
             }
           }
-
-          // Always update cache
-          await cache.put(event.request, networkResponse.clone());
-
-          // Notify UI only if content changed
-          if (shouldNotify) {
-            const clients = await self.clients.matchAll();
-            clients.forEach(client => {
-              client.postMessage({ type: 'UPDATE_AVAILABLE' });
-            });
-          }
-
-          // ✅ IMPORTANT: return NETWORK version
           return networkResponse;
         })
-        .catch(async () => {
+        .catch(() => {
           // Offline fallback
-          const cache = await caches.open(CACHE_NAME);
-          const cached = await cache.match(event.request);
-          return cached;
-        })
-    );
-    return;
-  }
+        });
 
-  // 📦 STANDARD ASSETS (cache-first)
-  event.respondWith(
-    caches.match(event.request).then(cached => {
-      return cached || fetch(event.request);
+      return cachedResponse || fetchPromise;
     })
   );
 });
