@@ -119,5 +119,24 @@ document.addEventListener('click', (event) => {
   }
 });
 
+// LISTENER: Wait for Service Worker to say "I found new data!"
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.addEventListener('message', event => {
+    if (event.data.type === 'UPDATE_AVAILABLE') {
+      showUpdateToast();
+    }
+  });
+}
+
+function showUpdateToast() {
+  const toast = document.getElementById('update-toast');
+  toast.classList.remove('hidden');
+  
+  // Reload page when clicked
+  toast.onclick = () => {
+    window.location.reload();
+  };
+}
+
 // Start the app
 loadData();

@@ -49,7 +49,15 @@ self.addEventListener('fetch', event => {
           .then(networkResponse => {
             // Only cache valid responses
             if (networkResponse && networkResponse.status === 200) {
+              const responseClone = networkResponse.clone();
               cache.put(event.request, networkResponse.clone());
+
+              if (event.request.url.includes('rules.md')) {
+                // 3. NOTIFY: Tell the main page "We have new data!"
+                self.clients.matchAll().then(clients => {
+                    clients.forEach(client => client.postMessage({ type: 'UPDATE_AVAILABLE' }));
+                });
+              }     
             }
             return networkResponse;
           })

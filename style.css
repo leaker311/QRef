@@ -49,3 +49,27 @@ border-radius: 12px;
 padding: 20px;
 margin-bottom: 10px;
 }
+
+/* Toast Notification */
+.toast {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #38bdf8; /* Light Blue */
+  color: #0f172a; /* Dark Background Color */
+  padding: 12px 24px;
+  border-radius: 50px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  font-weight: bold;
+  font-size: 14px;
+  z-index: 1000;
+  transition: opacity 0.3s, transform 0.3s;
+  cursor: pointer;
+}
+
+.hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, 20px); /* Push it down slightly when hidden */
+}
