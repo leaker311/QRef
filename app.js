@@ -1,44 +1,45 @@
 let rulesData = {};
+let activeCategory = null; // TRACKER: Remembers what is currently open
 
 async function loadData() {
-  // 1. Fetch the raw text file
-  const res = await fetch('data/rules.md');
-  const text = await res.text();
-  
-  // 2. Parse Markdown into an object
-  rulesData = parseMarkdown(text);
-  
-  renderMenu();
+  try {
+    const res = await fetch('data/rules.md');
+    const text = await res.text();
+    rulesData = parseMarkdown(text);
+    renderMenu();
+  } catch (e) {
+    console.error("Could not load rules:", e);
+  }
 }
 
 function parseMarkdown(md) {
   const lines = md.split('\n');
   let currentCategory = null;
   let currentTitle = null;
-  let data = {}; // Structure: { "Weather": [ {title: "Low Vis", content: "..."} ] }
+  let data = {};
 
   lines.forEach(line => {
     const cleanLine = line.trim();
     
-    // Detect Category (# Weather)
+    // 1. Detect Category (# Weather)
     if (cleanLine.startsWith('# ')) {
       currentCategory = cleanLine.replace('# ', '').trim();
       data[currentCategory] = [];
     } 
-    // Detect Rule Title (## Low Visibility)
+    // 2. Detect Rule Title (## Low Visibility)
     else if (cleanLine.startsWith('## ')) {
       currentTitle = cleanLine.replace('## ', '').trim();
-      // Add a placeholder for this rule
       if (currentCategory) {
         data[currentCategory].push({ title: currentTitle, content: '' });
       }
     }
-    // Detect Bullet Points (* Do this)
+    // 3. Detect Bullet Points (* or -)
     else if (cleanLine.startsWith('* ') || cleanLine.startsWith('- ')) {
-      if (currentCategory && data[currentCategory].length > 0) {
-        // Add text to the last rule added
+      if (currentCategory && data[currentCategory] && data[currentCategory].length > 0) {
         const lastRule = data[currentCategory][data[currentCategory].length - 1];
-        lastRule.content += `<li>${cleanLine.substring(2)}</li>`;
+        // Clean the bullet characters and wrap in <li>
+        const text = cleanLine.substring(2);
+        lastRule.content += `<li>${text}</li>`;
       }
     }
   });
@@ -49,35 +50,74 @@ function renderMenu() {
   const menu = document.getElementById('menu');
   menu.innerHTML = '';
 
-  // Loop through the keys (Categories)
   Object.keys(rulesData).forEach(catName => {
     const btn = document.createElement('div');
     btn.className = 'button';
     btn.innerText = catName;
-    btn.onclick = () => renderCategory(catName);
+    
+    // ACTION: Add the Click Handler
+    btn.onclick = (e) => {
+      // STOP propagation: Don't let this click hit the background listener
+      e.stopPropagation(); 
+      toggleCategory(catName);
+    };
+    
     menu.appendChild(btn);
   });
 }
 
-function renderCategory(catName) {
+function toggleCategory(catName) {
   const content = document.getElementById('content');
-  // Add a "Back" button functionality if you want, or just clear/header
-  content.innerHTML = `<h2>${catName}</h2>`;
 
-  const items = rulesData[catName];
-  items.forEach(item => {
-    const card = document.createElement('div');
-    card.className = 'card';
-    // Render the content as a UL list
-    card.innerHTML = `
-      <strong>${item.title}</strong>
-      <ul style="padding-left: 20px; margin-top: 10px;">
-        ${item.content}
-      </ul>
-    `;
-    content.appendChild(card);
-  });
+  // LOGIC: If clicking the SAME button that is already open...
+  if (activeCategory === catName) {
+    // ...Close it!
+    content.innerHTML = '';
+    activeCategory = null;
+    return;
+  }
+
+  // LOGIC: If clicking a NEW button...
+  activeCategory = catName; // Update tracker
+  renderCategory(catName);  // Show data
 }
 
-// Init
+function renderCategory(catName) {
+  const content = document.getElementById('content');
+  content.innerHTML = ''; // Clear previous content first
+
+  // Optional: Add a header so they know what they are looking at
+  content.innerHTML = `<h2 style="text-align:center; color:#94a3b8; margin-bottom:15px;">${catName}</h2>`;
+
+  const items = rulesData[catName];
+  if (items) {
+    items.forEach(item => {
+      const card = document.createElement('div');
+      card.className = 'card';
+      
+      // Stop clicks inside the card from closing the menu
+      card.onclick = (e) => e.stopPropagation();
+
+      card.innerHTML = `
+        <strong style="color:#38bdf8; font-size:1.1em;">${item.title}</strong>
+        <ul style="padding-left: 20px; margin-top: 10px; line-height: 1.5;">
+          ${item.content}
+        </ul>
+      `;
+      content.appendChild(card);
+    });
+  }
+}
+
+// FEATURE: Tap Anywhere Else to Close
+document.addEventListener('click', (event) => {
+  // If a category is open...
+  if (activeCategory) {
+    // ...and we clicked the empty background (not a button, handled by stopPropagation above)
+    document.getElementById('content').innerHTML = '';
+    activeCategory = null;
+  }
+});
+
+// Start the app
 loadData();

@@ -35,6 +35,10 @@ user-select: none;
 background: #334155;
 }
 
+.button:active {
+background: #38bdf8; /* Light Blue highlight on tap */
+}
+
 #content {
 margin-top: 20px;
 }

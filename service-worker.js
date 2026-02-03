@@ -1,21 +1,68 @@
+const CACHE_NAME = 'qref-ops-v1';
+const ASSETS = [
+  './',
+  './index.html',
+  './style.css',
+  './app.js',
+  './manifest.json',
+  './data/rules.md' // Add any other data files you create here
+];
+
+// 1. INSTALL: Store the basic files immediately
 self.addEventListener('install', event => {
-event.waitUntil(
-caches.open('ops-cache').then(cache => {
-return cache.addAll([
-'./',
-'./index.html',
-'./style.css',
-'./app.js',
-'./data/rules.md'
-]);
-})
-);
+  // skipWaiting forces the waiting service worker to become the active service worker
+  self.skipWaiting(); 
+  event.waitUntil(
+    caches.open(CACHE_NAME).then(cache => {
+      console.log('[Service Worker] Caching all: app shell and content');
+      return cache.addAll(ASSETS);
+    })
+  );
 });
 
+// 2. ACTIVATE: Clean up old caches
+self.addEventListener('activate', event => {
+  event.waitUntil(
+    caches.keys().then(keys => {
+      return Promise.all(
+        keys.filter(key => key !== CACHE_NAME)
+          .map(key => caches.delete(key))
+      );
+    })
+  );
+  // claim() makes the service worker take control of the page immediately
+  return self.clients.claim(); 
+});
+
+// 3. FETCH: Stale-While-Revalidate Strategy
 self.addEventListener('fetch', event => {
-event.respondWith(
-caches.match(event.request).then(response => {
-return response || fetch(event.request);
-})
-);
+  // Skip non-GET requests (like POST)
+  if (event.request.method !== 'GET') return;
+
+  event.respondWith(
+    caches.open(CACHE_NAME).then(cache => {
+      return cache.match(event.request).then(cachedResponse => {
+        
+        // A. Network Request (Background Update)
+        // We always try to fetch the latest version to update the cache
+        const fetchPromise = fetch(event.request)
+          .then(networkResponse => {
+            // Only cache valid responses
+            if (networkResponse && networkResponse.status === 200) {
+              cache.put(event.request, networkResponse.clone());
+            }
+            return networkResponse;
+          })
+          .catch(err => {
+            // Network failed. That's okay, we hopefully have a cache.
+            // console.log('[Service Worker] Network fail (offline/lie-fi)');
+          });
+
+        // B. Return Strategy
+        // 1. If we have it in cache, return that INSTANTLY.
+        // 2. If we don't (first visit), return the network promise.
+        return cachedResponse || fetchPromise;
+      });
+    })
+  );
 });
