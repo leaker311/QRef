@@ -19,3 +19,10 @@
 - If fuel < 30 mins remaining
 - Declare minimum fuel state
 - divert to nearest alternate
+
+# New FO
+
+## Limitations
+
+- Cannot land
+- Cannot say hi
