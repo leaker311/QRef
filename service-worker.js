@@ -1,4 +1,4 @@
-const CACHE_NAME = 'qref-ops-v1';
+const CACHE_NAME = 'qref-ops-v2';
 const ASSETS = [
   './',
   './index.html',
