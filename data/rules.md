@@ -20,9 +20,24 @@
 - Declare minimum fuel state
 - divert to nearest alternate
 
-# New FO
+# Emergency
 
-## Limitations
+## Engine Fire
 
-- Cannot land
-- Cannot say hi
+- Cut Fuel immediately
+- Discharge Extinguisher
+- Notify ATC "Mayday"
+
+# Crew
+
+## Flight Time
+
+- Max 8 hours per day
+- Min 12 hours rest
+
+# Cargo
+
+## Hazmat
+
+- Check lithium battery logs
+- Verify secure tie-downs
