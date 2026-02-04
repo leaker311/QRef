@@ -156,5 +156,35 @@ function showUpdateToast() {
   }
 }
 
+// EMERGENCY RESET BUTTON LOGIC
+document.getElementById('reset-btn').addEventListener('click', async () => {
+  if (!confirm("This will delete all saved data and force a fresh download. Continue?")) return;
+  
+  const status = document.getElementById('reset-btn');
+  status.innerText = "Cleaning...";
+
+  // 1. Unregister the Service Worker (Kill the brain)
+  if ('serviceWorker' in navigator) {
+    const registrations = await navigator.serviceWorker.getRegistrations();
+    for (const registration of registrations) {
+      await registration.unregister();
+      console.log('Service Worker unregistered');
+    }
+  }
+
+  // 2. Delete All Caches (Burn the pantry)
+  const keys = await caches.keys();
+  for (const key of keys) {
+    await caches.delete(key);
+    console.log('Cache deleted:', key);
+  }
+
+  // 3. Force Reload from Server (ignore browser cache)
+  status.innerText = "Reloading...";
+  setTimeout(() => {
+    window.location.reload(true);
+  }, 1000);
+});
+
 // Start the app
 loadData();
