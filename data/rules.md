@@ -16,4 +16,4 @@
 
 ## RVR Table
 
-<img src="data/RV_Table.png" width="100%">
+![image info](/data/RV_Table.png)
