@@ -14,4 +14,101 @@
   --bg-body: #f8fafc;       /* Very Light Grey */
   --text-main: #0f172a;     /* Dark Text */
   --bg-card: #ffffff;       /* Pure White Cards */
-  --bg-btn: 
+  --bg-btn: #e2e8f0;        /* Light Grey Button */
+  --bg-btn-hover: #cbd5e1;  /* Darker Grey Hover */
+  --highlight: #0284c7;     /* Darker Blue Accent (Readable on white) */
+  --shadow: rgba(0,0,0,0.1);
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--bg-body);
+  color: var(--text-main);
+  transition: background 0.3s, color 0.3s; /* Smooth fade effect */
+}
+
+#app {
+  padding: 20px;
+  max-width: 800px; /* Keeps it readable on large iPads */
+  margin: 0 auto;
+}
+
+/* Header Area */
+.header-container {
+  display: flex;
+  justify-content: space-between; /* Pushes Title and Toggle apart */
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+#title {
+  margin: 0;
+  font-size: 28px;
+}
+
+/* The Theme Toggle Button */
+.theme-btn {
+  background: none;
+  border: 2px solid var(--bg-btn);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-main);
+  transition: transform 0.2s;
+}
+.theme-btn:active { transform: scale(0.9); }
+
+#menu {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+}
+
+.button {
+  background: var(--bg-btn);
+  border-radius: 12px;
+  padding: 25px;
+  text-align: center;
+  font-size: 18px;
+  cursor: pointer;
+  user-select: none;
+  box-shadow: 0 4px 6px var(--shadow);
+  transition: background 0.2s;
+}
+
+.button:hover { background: var(--bg-btn-hover); }
+.button:active { background: var(--highlight); color: white; }
+
+#content { margin-top: 20px; }
+
+.card {
+  background: var(--bg-card);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 10px;
+  box-shadow: 0 2px 4px var(--shadow);
+}
+
+/* Toast Notification */
+.toast {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: var(--highlight);
+  color: white;
+  padding: 12px 24px;
+  border-radius: 50px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  font-weight: bold;
+  font-size: 14px;
+  z-index: 1000;
+  cursor: pointer;
+}
+.hidden { display: none; }
