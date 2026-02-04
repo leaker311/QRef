@@ -117,5 +117,33 @@ document.getElementById('reset-btn').addEventListener('click', async () => {
   window.location.reload(true);
 });
 
-// Start
+// THEME TOGGLE LOGIC
+const themeBtn = document.getElementById('theme-toggle');
+const body = document.body;
+
+// 1. Check Saved Preference on Load
+const savedTheme = localStorage.getItem('ops-theme');
+if (savedTheme === 'light') {
+  body.classList.add('light-mode');
+  themeBtn.innerText = '🌙'; // Switch icon to Moon
+}
+
+// 2. Toggle on Click
+if (themeBtn) {
+  themeBtn.addEventListener('click', () => {
+    body.classList.toggle('light-mode');
+    
+    // Save preference
+    if (body.classList.contains('light-mode')) {
+      localStorage.setItem('ops-theme', 'light');
+      themeBtn.innerText = '🌙'; // Moon mode available
+    } else {
+      localStorage.setItem('ops-theme', 'dark');
+      themeBtn.innerText = '☀️'; // Sun mode available
+    }
+  });
+}
+
+// ... (Reset Logic)
+// ... (Start App)
 loadData();
