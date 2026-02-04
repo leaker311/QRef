@@ -1,14 +1,41 @@
 let rulesData = {};
 let activeCategory = null; // TRACKER: Remembers what is currently open
 
+//temp debug disabled
+// async function loadData() {
+//   try {
+//     const res = await fetch('data/rules.md');
+//     const text = await res.text();
+//     rulesData = parseMarkdown(text);
+//     renderMenu();
+//   } catch (e) {
+//     console.error("Could not load rules:", e);
+//   }
+// }
 async function loadData() {
   try {
-    const res = await fetch('data/rules.md');
+    // 1. FORCE FRESH: Add a random number to the URL to bypass all caches
+    const url = `data/rules.md?debug=${Date.now()}`;
+    console.log("Fetching:", url);
+
+    const res = await fetch(url);
     const text = await res.text();
+    
+    // 2. SHOW THE TRUTH: Inject the raw text into the Debug Box
+    const debugBox = document.getElementById('debug-console');
+    debugBox.style.display = 'block'; // Make it visible
+    // Show the first 500 characters so we can see if the new buttons are there
+    debugBox.innerText = "--- RAW DATA FROM GITHUB ---\n" + text.substring(0, 500) + "\n...";
+
+    // 3. Parse and Render
     rulesData = parseMarkdown(text);
     renderMenu();
+
   } catch (e) {
     console.error("Could not load rules:", e);
+    const debugBox = document.getElementById('debug-console');
+    debugBox.style.display = 'block';
+    debugBox.innerText = "ERROR LOADING DATA:\n" + e.message;
   }
 }
 
