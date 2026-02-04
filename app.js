@@ -1,44 +1,51 @@
+// GLOBAL ERROR TRAP: Catches syntax errors and prints them to the screen
+window.onerror = function(message, source, lineno, colno, error) {
+  const debug = document.getElementById('debug-console');
+  if (debug) debug.innerText += `\nCRITICAL ERROR: ${message} at line ${lineno}`;
+};
+
+// APP VARIABLES
 let rulesData = {};
-let activeCategory = null; // TRACKER: Remembers what is currently open
+let activeCategory = null;
 
-//temp debug disabled
-// async function loadData() {
-//   try {
-//     const res = await fetch('data/rules.md');
-//     const text = await res.text();
-//     rulesData = parseMarkdown(text);
-//     renderMenu();
-//   } catch (e) {
-//     console.error("Could not load rules:", e);
-//   }
-// }
+// MAIN LOADER
 async function loadData() {
+  const debug = document.getElementById('debug-console');
   try {
-    // 1. FORCE FRESH: Add a random number to the URL to bypass all caches
-    const url = `data/rules.md?debug=${Date.now()}`;
-    console.log("Fetching:", url);
-
-    const res = await fetch(url);
-    const text = await res.text();
+    debug.innerText += "\n[1] Fetching rules.md...";
     
-    // 2. SHOW THE TRUTH: Inject the raw text into the Debug Box
-    const debugBox = document.getElementById('debug-console');
-    debugBox.style.display = 'block'; // Make it visible
-    // Show the first 500 characters so we can see if the new buttons are there
-    debugBox.innerText = "--- RAW DATA FROM GITHUB ---\n" + text.substring(0, 500) + "\n...";
+    // Add timestamp to FORCE fresh data (Bypass all caches for debugging)
+    const res = await fetch(`data/rules.md?t=${Date.now()}`);
+    
+    if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
+    
+    const text = await res.text();
+    debug.innerText += `\n[2] Downloaded ${text.length} chars.`;
+    
+    // Check if we accidentally downloaded a 404 HTML page instead of Markdown
+    if (text.includes("<!DOCTYPE html>")) {
+      throw new Error("Found HTML instead of Markdown. Check filename.");
+    }
 
-    // 3. Parse and Render
+    // Parse
     rulesData = parseMarkdown(text);
+    const categoryCount = Object.keys(rulesData).length;
+    debug.innerText += `\n[3] Parsed ${categoryCount} categories.`;
+    
+    // Render
     renderMenu();
+    debug.innerText += "\n[4] UI Rendered.";
+    
+    // If successful, hide debug box after 3 seconds
+    // setTimeout(() => { debug.style.display = 'none'; }, 3000);
 
   } catch (e) {
-    console.error("Could not load rules:", e);
-    const debugBox = document.getElementById('debug-console');
-    debugBox.style.display = 'block';
-    debugBox.innerText = "ERROR LOADING DATA:\n" + e.message;
+    debug.innerText += `\nERROR: ${e.message}`;
+    console.error(e);
   }
 }
 
+// PARSER
 function parseMarkdown(md) {
   const lines = md.split('\n');
   let currentCategory = null;
@@ -47,24 +54,17 @@ function parseMarkdown(md) {
 
   lines.forEach(line => {
     const cleanLine = line.trim();
-    
-    // 1. Detect Category (# Weather)
     if (cleanLine.startsWith('# ')) {
       currentCategory = cleanLine.replace('# ', '').trim();
       data[currentCategory] = [];
-    } 
-    // 2. Detect Rule Title (## Low Visibility)
-    else if (cleanLine.startsWith('## ')) {
+    } else if (cleanLine.startsWith('## ')) {
       currentTitle = cleanLine.replace('## ', '').trim();
       if (currentCategory) {
         data[currentCategory].push({ title: currentTitle, content: '' });
       }
-    }
-    // 3. Detect Bullet Points (* or -)
-    else if (cleanLine.startsWith('* ') || cleanLine.startsWith('- ')) {
+    } else if (cleanLine.startsWith('* ') || cleanLine.startsWith('- ')) {
       if (currentCategory && data[currentCategory] && data[currentCategory].length > 0) {
         const lastRule = data[currentCategory][data[currentCategory].length - 1];
-        // Clean the bullet characters and wrap in <li>
         const text = cleanLine.substring(2);
         lastRule.content += `<li>${text}</li>`;
       }
@@ -73,145 +73,70 @@ function parseMarkdown(md) {
   return data;
 }
 
+// UI RENDERERS
 function renderMenu() {
   const menu = document.getElementById('menu');
   menu.innerHTML = '';
-
   Object.keys(rulesData).forEach(catName => {
     const btn = document.createElement('div');
     btn.className = 'button';
     btn.innerText = catName;
-    
-    // ACTION: Add the Click Handler
-    btn.onclick = (e) => {
-      // STOP propagation: Don't let this click hit the background listener
-      e.stopPropagation(); 
-      toggleCategory(catName);
-    };
-    
+    btn.onclick = (e) => { e.stopPropagation(); toggleCategory(catName); };
     menu.appendChild(btn);
   });
 }
 
 function toggleCategory(catName) {
   const content = document.getElementById('content');
-
-  // LOGIC: If clicking the SAME button that is already open...
   if (activeCategory === catName) {
-    // ...Close it!
     content.innerHTML = '';
     activeCategory = null;
     return;
   }
-
-  // LOGIC: If clicking a NEW button...
-  activeCategory = catName; // Update tracker
-  renderCategory(catName);  // Show data
+  activeCategory = catName;
+  renderCategory(catName);
 }
 
 function renderCategory(catName) {
   const content = document.getElementById('content');
-  content.innerHTML = ''; // Clear previous content first
-
-  // Optional: Add a header so they know what they are looking at
-  content.innerHTML = `<h2 style="text-align:center; color:#94a3b8; margin-bottom:15px;">${catName}</h2>`;
-
+  content.innerHTML = `<h2 style="text-align:center; color:#94a3b8;">${catName}</h2>`;
   const items = rulesData[catName];
   if (items) {
     items.forEach(item => {
       const card = document.createElement('div');
       card.className = 'card';
-      
-      // Stop clicks inside the card from closing the menu
       card.onclick = (e) => e.stopPropagation();
-
-      card.innerHTML = `
-        <strong style="color:#38bdf8; font-size:1.1em;">${item.title}</strong>
-        <ul style="padding-left: 20px; margin-top: 10px; line-height: 1.5;">
-          ${item.content}
-        </ul>
-      `;
+      card.innerHTML = `<strong style="color:#38bdf8;">${item.title}</strong><ul style="padding-left:20px; margin-top:10px;">${item.content}</ul>`;
       content.appendChild(card);
     });
   }
 }
 
-// FEATURE: Tap Anywhere Else to Close
-document.addEventListener('click', (event) => {
-  // If a category is open...
+// EVENT LISTENERS
+document.addEventListener('click', () => {
   if (activeCategory) {
-    // ...and we clicked the empty background (not a button, handled by stopPropagation above)
     document.getElementById('content').innerHTML = '';
     activeCategory = null;
   }
 });
 
-// -------------------------------------------------------
-// SERVICE WORKER SETUP (The "Ignition Key")
-// -------------------------------------------------------
-
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    // 1. Register the Service Worker
-    navigator.serviceWorker.register('./service-worker.js')
-      .then(registration => {
-        console.log('Service Worker registered with scope:', registration.scope);
-      })
-      .catch(err => {
-        console.log('Service Worker registration failed:', err);
-      });
-  });
-
-  // 2. Listen for the "New Data" message from the Service Worker
-  navigator.serviceWorker.addEventListener('message', event => {
-    console.log("Update message received:", event.data);
-    if (event.data.type === 'UPDATE_AVAILABLE') {
-      showUpdateToast();
-    }
-  });
-}
-
-function showUpdateToast() {
-  const toast = document.getElementById('update-toast');
-  if (toast) {
-    toast.classList.remove('hidden');
+// HARD RESET LOGIC
+const resetBtn = document.getElementById('reset-btn');
+if (resetBtn) {
+  resetBtn.addEventListener('click', async () => {
+    if (!confirm("Reset everything?")) return;
+    resetBtn.innerText = "Nuking...";
     
-    // Reload page when clicked to see the new content
-    toast.onclick = () => {
-      window.location.reload();
-    };
-  }
+    if ('serviceWorker' in navigator) {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      for (const reg of regs) await reg.unregister();
+    }
+    const keys = await caches.keys();
+    for (const key of keys) await caches.delete(key);
+    
+    window.location.reload(true);
+  });
 }
 
-// EMERGENCY RESET BUTTON LOGIC
-document.getElementById('reset-btn').addEventListener('click', async () => {
-  if (!confirm("This will delete all saved data and force a fresh download. Continue?")) return;
-  
-  const status = document.getElementById('reset-btn');
-  status.innerText = "Cleaning...";
-
-  // 1. Unregister the Service Worker (Kill the brain)
-  if ('serviceWorker' in navigator) {
-    const registrations = await navigator.serviceWorker.getRegistrations();
-    for (const registration of registrations) {
-      await registration.unregister();
-      console.log('Service Worker unregistered');
-    }
-  }
-
-  // 2. Delete All Caches (Burn the pantry)
-  const keys = await caches.keys();
-  for (const key of keys) {
-    await caches.delete(key);
-    console.log('Cache deleted:', key);
-  }
-
-  // 3. Force Reload from Server (ignore browser cache)
-  status.innerText = "Reloading...";
-  setTimeout(() => {
-    window.location.reload(true);
-  }, 1000);
-});
-
-// Start the app
+// INIT
 loadData();
