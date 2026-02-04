@@ -17,7 +17,33 @@ async function loadData() {
     document.getElementById('menu').innerHTML = `<div class="card" style="color:red">Error loading data. Check internet.</div>`;
   }
 }
+// this works commented out to try images
+// function parseMarkdown(md) {
+//   const lines = md.split('\n');
+//   let currentCategory = null;
+//   let currentTitle = null;
+//   let data = {};
 
+//   lines.forEach(line => {
+//     const cleanLine = line.trim();
+//     if (cleanLine.startsWith('# ')) {
+//       currentCategory = cleanLine.replace('# ', '').trim();
+//       data[currentCategory] = [];
+//     } else if (cleanLine.startsWith('## ')) {
+//       currentTitle = cleanLine.replace('## ', '').trim();
+//       if (currentCategory) {
+//         data[currentCategory].push({ title: currentTitle, content: '' });
+//       }
+//     } else if (cleanLine.startsWith('* ') || cleanLine.startsWith('- ')) {
+//       if (currentCategory && data[currentCategory] && data[currentCategory].length > 0) {
+//         const lastRule = data[currentCategory][data[currentCategory].length - 1];
+//         lastRule.content += `<li>${cleanLine.substring(2)}</li>`;
+//       }
+//     }
+//   });
+//   return data;
+// }
+// trying images
 function parseMarkdown(md) {
   const lines = md.split('\n');
   let currentCategory = null;
@@ -26,18 +52,36 @@ function parseMarkdown(md) {
 
   lines.forEach(line => {
     const cleanLine = line.trim();
+    
+    // Skip empty lines
+    if (!cleanLine) return;
+
+    // 1. Category
     if (cleanLine.startsWith('# ')) {
       currentCategory = cleanLine.replace('# ', '').trim();
       data[currentCategory] = [];
-    } else if (cleanLine.startsWith('## ')) {
+    } 
+    // 2. Title
+    else if (cleanLine.startsWith('## ')) {
       currentTitle = cleanLine.replace('## ', '').trim();
       if (currentCategory) {
         data[currentCategory].push({ title: currentTitle, content: '' });
       }
-    } else if (cleanLine.startsWith('* ') || cleanLine.startsWith('- ')) {
+    } 
+    // 3. Bullet Points
+    else if (cleanLine.startsWith('* ') || cleanLine.startsWith('- ')) {
       if (currentCategory && data[currentCategory] && data[currentCategory].length > 0) {
         const lastRule = data[currentCategory][data[currentCategory].length - 1];
-        lastRule.content += `<li>${cleanLine.substring(2)}</li>`;
+        const text = cleanLine.substring(2);
+        lastRule.content += `<li>${text}</li>`;
+      }
+    }
+    // 4. EVERYTHING ELSE (Images, Paragraphs, Notes) <<-- NEW!
+    else {
+      if (currentCategory && data[currentCategory] && data[currentCategory].length > 0) {
+        const lastRule = data[currentCategory][data[currentCategory].length - 1];
+        // Add it as a raw div, not a list item
+        lastRule.content += `<div style="margin-top:10px; margin-bottom:10px;">${cleanLine}</div>`;
       }
     }
   });
