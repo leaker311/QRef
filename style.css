@@ -98,15 +98,28 @@ body {
   box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
 }
 
-/* --- THE DRAWER (Full Width Expansion) --- */
+/* --- THE DRAWER (Updated) --- */
 .drawer {
-  grid-column: 1 / -1; /* MAGIC: Forces element to span ALL columns */
+  grid-column: 1 / -1; 
   background: var(--bg-card);
   overflow: hidden;
+  /* START CLOSED */
   max-height: 0;
   opacity: 0;
+  padding: 0 20px; /* Zero vertical padding when closed */
+  margin: 0;       /* Zero margin when closed */
+  
   border-radius: 12px;
-  margin-top: -5px;
-  margin-bottom: 10px;
   box-shadow: inset 0 0 20px rgba(0,0,0,0.2);
+  transition: all 0.3s ease-out; /* Animate everything */
+}
+
+.drawer.open {
+  /* OPEN STATE */
+  max-height: 3000px; /* Big enough for any content */
+  opacity: 1;
+  padding: 20px; /* Restore padding */
+  margin-top: 10px;
+  margin-bottom: 20px;
+  border: 1px solid var(--highlight);
 }

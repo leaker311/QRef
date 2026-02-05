@@ -79,73 +79,103 @@ function renderMenu() {
   });
 }
 
-// 4. TOGGLE LOGIC (The "Grid Math")
 function toggleGridCategory(catName, clickedBtn, index, totalItems, drawer) {
   const menu = document.getElementById('menu');
   const allBtns = document.querySelectorAll('.grid-btn');
 
-  // A. CLOSE if clicking the same button
+  // A. CLOSE LOGIC: If clicking the button that is already open...
   if (activeCategory === catName) {
+    // 1. Start the closing animation
     drawer.classList.remove('open');
     clickedBtn.classList.remove('active');
     activeCategory = null;
-    // Remove drawer from DOM after animation
-    setTimeout(() => { if(!activeCategory) drawer.remove(); }, 400);
+    
+    // 2. Wait for the CSS transition (0.3s) to finish, then remove from DOM
+    setTimeout(() => { 
+      if (!activeCategory) drawer.remove(); 
+    }, 350);
     return;
   }
 
-  // B. SWITCHING to a new button
+  // B. OPEN LOGIC: Switching to a new button...
   
-  // 1. Reset UI
+  // 1. Reset UI (Turn off old buttons)
   allBtns.forEach(b => b.classList.remove('active'));
+  
+  // 2. Activate the new button
   clickedBtn.classList.add('active');
   activeCategory = catName;
 
-  // 2. Fill Content
+  // 3. Fill the drawer with the new text
   renderCategoryContent(catName, drawer);
 
-  // 3. Find Insertion Point (After the current ROW)
-  // Even index (0, 2) is Left -> insert after Next (1, 3)
-  // Odd index (1, 3) is Right -> insert after Self
+  // 4. CALCULATE INSERTION POINT
+  // We need to put the drawer AFTER the row the user clicked.
+  // In a 2-column grid:
+  // - If index is EVEN (0, 2, 4) -> It's the Left button -> Insert after Next (Index + 1)
+  // - If index is ODD (1, 3, 5)  -> It's the Right button -> Insert after Self (Index)
+  
   let targetIndex = (index % 2 === 0) ? index + 1 : index;
   
-  // If we are at the very last item, just use that
+  // Safety: If we are on the very last item, just use that index
   if (targetIndex >= totalItems) targetIndex = index;
 
   const referenceNode = allBtns[targetIndex];
 
-  // 4. Insert Drawer
+  // 5. MOVE THE DRAWER in the DOM
   if (referenceNode && referenceNode.nextSibling) {
     menu.insertBefore(drawer, referenceNode.nextSibling);
   } else {
-    menu.appendChild(drawer);
+    menu.appendChild(drawer); // End of list
   }
 
-  // 5. Open Animation
-  // Small delay ensures the DOM has updated before we animate CSS
-  setTimeout(() => { drawer.classList.add('open'); }, 10);
+  // 6. THE "DOUBLE PUMP" (CRITICAL FIX)
+  // We must remove the 'open' class first to ensure it starts at 0 height
+  drawer.classList.remove('open');
+  
+  // FORCE BROWSER REFLOW: This line looks useless, but it forces the browser 
+  // to acknowledge the drawer is in the DOM *before* we try to animate it.
+  void drawer.offsetHeight; 
+
+  // 7. TRIGGER ANIMATION
+  drawer.classList.add('open');
 }
 
-// 5. RENDER CONTENT (Inside Drawer)
 function renderCategoryContent(catName, container) {
-  container.innerHTML = `<div style="text-align:right; margin-bottom:10px; color:#64748b; font-size:12px; font-weight:bold;">TAP BUTTON TO CLOSE</div>`;
+  // 1. Clear previous content
+  container.innerHTML = ''; 
   
+  // 2. Add the "Close" label
+  // This helps the user know they can tap the big button again to close it
+  container.innerHTML = `<div style="text-align:right; margin-bottom:15px; color:#64748b; font-size:12px; font-weight:bold; letter-spacing:0.5px;">TAP BUTTON TO CLOSE</div>`;
+
   const items = rulesData[catName];
-  if (items) {
-    items.forEach(item => {
-      const block = document.createElement('div');
-      block.style.marginBottom = "20px";
-      block.innerHTML = `
-        <strong style="color:var(--highlight); font-size:1.1em; display:block; margin-bottom:5px;">
-          ${item.title}
-        </strong>
-        <div style="padding-left: 10px; border-left: 2px solid var(--highlight); line-height: 1.6;">
-          ${item.content}
-        </div>
-      `;
-      container.appendChild(block);
-    });
+
+  // 3. SAFETY CHECK: If the category has no data in the .md file
+  if (!items || items.length === 0) {
+    container.innerHTML += `
+      <div style="padding:20px; text-align:center; color:#94a3b8; font-style:italic;">
+        No data found for this category.
+      </div>`;
+    return;
   }
+
+  // 4. Render each Rule / Item
+  items.forEach(item => {
+    const block = document.createElement('div');
+    block.style.marginBottom = "25px"; // Spacing between rules
+    
+    // We use a slight border-left to make it look like a distinct section
+    block.innerHTML = `
+      <strong style="color:var(--highlight); font-size:1.2em; display:block; margin-bottom:8px;">
+        ${item.title}
+      </strong>
+      <div style="padding-left: 15px; border-left: 3px solid var(--highlight); color: var(--text-main); line-height: 1.6; font-size: 16px;">
+        ${item.content}
+      </div>
+    `;
+    container.appendChild(block);
+  });
 }
 
 // --- SETUP & UTILS ---
