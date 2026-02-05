@@ -16,7 +16,7 @@
   --bg-card: #ffffff;       /* Pure White Cards */
   --bg-btn: #e2e8f0;        /* Light Grey Button */
   --bg-btn-hover: #cbd5e1;  /* Darker Grey Hover */
-  --highlight: #0284c7;     /* Darker Blue Accent (Readable on white) */
+  --highlight: #0284c7;     /* Darker Blue Accent */
   --shadow: rgba(0,0,0,0.1);
 }
 
@@ -25,19 +25,19 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, sans-serif;
   background: var(--bg-body);
   color: var(--text-main);
-  transition: background 0.3s, color 0.3s; /* Smooth fade effect */
+  transition: background 0.3s, color 0.3s;
 }
 
 #app {
   padding: 20px;
-  max-width: 800px; /* Keeps it readable on large iPads */
+  max-width: 800px;
   margin: 0 auto;
 }
 
 /* Header Area */
 .header-container {
   display: flex;
-  justify-content: space-between; /* Pushes Title and Toggle apart */
+  justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
 }
@@ -47,7 +47,6 @@ body {
   font-size: 28px;
 }
 
-/* The Theme Toggle Button */
 .theme-btn {
   background: none;
   border: 2px solid var(--bg-btn);
@@ -64,51 +63,49 @@ body {
 }
 .theme-btn:active { transform: scale(0.9); }
 
+/* --- THE GRID LAYOUT --- */
 #menu {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(2, 1fr); /* 2 Columns */
   gap: 15px;
+  align-items: start;
 }
 
-.button {
+/* --- THE BUTTONS --- */
+.grid-btn {
   background: var(--bg-btn);
   border-radius: 12px;
-  padding: 25px;
+  padding: 20px;
   text-align: center;
   font-size: 18px;
+  font-weight: bold;
   cursor: pointer;
   user-select: none;
   box-shadow: 0 4px 6px var(--shadow);
-  transition: background 0.2s;
+  transition: transform 0.2s, background 0.2s;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 80px; /* Ensures buttons are nice and square-ish */
 }
 
-.button:hover { background: var(--bg-btn-hover); }
-.button:active { background: var(--highlight); color: white; }
+.grid-btn:hover { background: var(--bg-btn-hover); }
+.grid-btn:active { transform: scale(0.98); }
 
-#content { margin-top: 20px; }
-
-.card {
-  background: var(--bg-card);
-  border-radius: 12px;
-  padding: 20px;
-  margin-bottom: 10px;
-  box-shadow: 0 2px 4px var(--shadow);
-}
-
-/* Toast Notification */
-.toast {
-  position: fixed;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  background-color: var(--highlight);
+.grid-btn.active {
+  background: var(--highlight);
   color: white;
-  padding: 12px 24px;
-  border-radius: 50px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-  font-weight: bold;
-  font-size: 14px;
-  z-index: 1000;
-  cursor: pointer;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
 }
-.hidden { display: none; }
+
+/* --- THE DRAWER (Full Width Expansion) --- */
+.drawer {
+  grid-column: 1 / -1; /* MAGIC: Forces element to span ALL columns */
+  background: var(--bg-card);
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  border-radius: 12px;
+  margin-top: -5px;
+  margin-bottom: 10px;
+  box-shadow: inset 0 0 20px rgba(0,0,0,0.2

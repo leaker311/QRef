@@ -1,10 +1,10 @@
 let rulesData = {};
 let activeCategory = null;
 
+// 1. DATA LOADING
 async function loadData() {
   try {
-    // We use the timestamp ?t= to ensure we always get the latest list from the server
-    // logic checks later if it actually matches our cache.
+    // Timestamp forces fresh check, Service Worker handles actual caching
     const res = await fetch(`data/rules.md?t=${Date.now()}`);
     if (!res.ok) throw new Error("Network response was not ok");
     
@@ -13,37 +13,11 @@ async function loadData() {
     renderMenu();
   } catch (e) {
     console.error("Could not load rules:", e);
-    // Optional: Show an error card in the menu if data fails completely
-    document.getElementById('menu').innerHTML = `<div class="card" style="color:red">Error loading data. Check internet.</div>`;
+    document.getElementById('menu').innerHTML = `<div style="grid-column:1/-1; color:red; text-align:center;">Error loading data. Check internet.</div>`;
   }
 }
-// this works commented out to try images
-// function parseMarkdown(md) {
-//   const lines = md.split('\n');
-//   let currentCategory = null;
-//   let currentTitle = null;
-//   let data = {};
 
-//   lines.forEach(line => {
-//     const cleanLine = line.trim();
-//     if (cleanLine.startsWith('# ')) {
-//       currentCategory = cleanLine.replace('# ', '').trim();
-//       data[currentCategory] = [];
-//     } else if (cleanLine.startsWith('## ')) {
-//       currentTitle = cleanLine.replace('## ', '').trim();
-//       if (currentCategory) {
-//         data[currentCategory].push({ title: currentTitle, content: '' });
-//       }
-//     } else if (cleanLine.startsWith('* ') || cleanLine.startsWith('- ')) {
-//       if (currentCategory && data[currentCategory] && data[currentCategory].length > 0) {
-//         const lastRule = data[currentCategory][data[currentCategory].length - 1];
-//         lastRule.content += `<li>${cleanLine.substring(2)}</li>`;
-//       }
-//     }
-//   });
-//   return data;
-// }
-// trying images
+// 2. PARSER (Supports Images and Text)
 function parseMarkdown(md) {
   const lines = md.split('\n');
   let currentCategory = null;
@@ -52,35 +26,25 @@ function parseMarkdown(md) {
 
   lines.forEach(line => {
     const cleanLine = line.trim();
-    
-    // Skip empty lines
-    if (!cleanLine) return;
+    if (!cleanLine) return; // Skip empty lines
 
-    // 1. Category
     if (cleanLine.startsWith('# ')) {
       currentCategory = cleanLine.replace('# ', '').trim();
       data[currentCategory] = [];
-    } 
-    // 2. Title
-    else if (cleanLine.startsWith('## ')) {
+    } else if (cleanLine.startsWith('## ')) {
       currentTitle = cleanLine.replace('## ', '').trim();
       if (currentCategory) {
         data[currentCategory].push({ title: currentTitle, content: '' });
       }
-    } 
-    // 3. Bullet Points
-    else if (cleanLine.startsWith('* ') || cleanLine.startsWith('- ')) {
+    } else if (cleanLine.startsWith('* ') || cleanLine.startsWith('- ')) {
       if (currentCategory && data[currentCategory] && data[currentCategory].length > 0) {
         const lastRule = data[currentCategory][data[currentCategory].length - 1];
-        const text = cleanLine.substring(2);
-        lastRule.content += `<li>${text}</li>`;
+        lastRule.content += `<li>${cleanLine.substring(2)}</li>`;
       }
-    }
-    // 4. EVERYTHING ELSE (Images, Paragraphs, Notes) <<-- NEW!
-    else {
+    } else {
+      // Catch-all for Images/Paragraphs
       if (currentCategory && data[currentCategory] && data[currentCategory].length > 0) {
         const lastRule = data[currentCategory][data[currentCategory].length - 1];
-        // Add it as a raw div, not a list item
         lastRule.content += `<div style="margin-top:10px; margin-bottom:10px;">${cleanLine}</div>`;
       }
     }
@@ -88,106 +52,151 @@ function parseMarkdown(md) {
   return data;
 }
 
+// 3. RENDER MENU (Grid + Hidden Drawer)
 function renderMenu() {
   const menu = document.getElementById('menu');
   menu.innerHTML = '';
-  Object.keys(rulesData).forEach(catName => {
+
+  // Create the SINGLE shared drawer
+  const drawer = document.createElement('div');
+  drawer.className = 'drawer';
+  drawer.id = 'active-drawer';
+  
+  const categories = Object.keys(rulesData);
+  
+  categories.forEach((catName, index) => {
     const btn = document.createElement('div');
-    btn.className = 'button';
+    btn.className = 'grid-btn';
     btn.innerText = catName;
-    btn.onclick = (e) => { e.stopPropagation(); toggleCategory(catName); };
+    
+    // Click Handler
+    btn.onclick = (e) => {
+      e.stopPropagation(); 
+      toggleGridCategory(catName, btn, index, categories.length, drawer);
+    };
+
     menu.appendChild(btn);
   });
 }
 
-function toggleCategory(catName) {
-  const content = document.getElementById('content');
+// 4. TOGGLE LOGIC (The "Grid Math")
+function toggleGridCategory(catName, clickedBtn, index, totalItems, drawer) {
+  const menu = document.getElementById('menu');
+  const allBtns = document.querySelectorAll('.grid-btn');
+
+  // A. CLOSE if clicking the same button
   if (activeCategory === catName) {
-    content.innerHTML = '';
+    drawer.classList.remove('open');
+    clickedBtn.classList.remove('active');
     activeCategory = null;
+    // Remove drawer from DOM after animation
+    setTimeout(() => { if(!activeCategory) drawer.remove(); }, 400);
     return;
   }
+
+  // B. SWITCHING to a new button
+  
+  // 1. Reset UI
+  allBtns.forEach(b => b.classList.remove('active'));
+  clickedBtn.classList.add('active');
   activeCategory = catName;
-  renderCategory(catName);
+
+  // 2. Fill Content
+  renderCategoryContent(catName, drawer);
+
+  // 3. Find Insertion Point (After the current ROW)
+  // Even index (0, 2) is Left -> insert after Next (1, 3)
+  // Odd index (1, 3) is Right -> insert after Self
+  let targetIndex = (index % 2 === 0) ? index + 1 : index;
+  
+  // If we are at the very last item, just use that
+  if (targetIndex >= totalItems) targetIndex = index;
+
+  const referenceNode = allBtns[targetIndex];
+
+  // 4. Insert Drawer
+  if (referenceNode && referenceNode.nextSibling) {
+    menu.insertBefore(drawer, referenceNode.nextSibling);
+  } else {
+    menu.appendChild(drawer);
+  }
+
+  // 5. Open Animation
+  // Small delay ensures the DOM has updated before we animate CSS
+  setTimeout(() => { drawer.classList.add('open'); }, 10);
 }
 
-function renderCategory(catName) {
-  const content = document.getElementById('content');
-  content.innerHTML = `<h2 style="text-align:center; color:#94a3b8; margin-bottom:15px;">${catName}</h2>`;
+// 5. RENDER CONTENT (Inside Drawer)
+function renderCategoryContent(catName, container) {
+  container.innerHTML = `<div style="text-align:right; margin-bottom:10px; color:#64748b; font-size:12px; font-weight:bold;">TAP BUTTON TO CLOSE</div>`;
+  
   const items = rulesData[catName];
   if (items) {
     items.forEach(item => {
-      const card = document.createElement('div');
-      card.className = 'card';
-      card.onclick = (e) => e.stopPropagation();
-      card.innerHTML = `<strong style="color:#38bdf8; font-size:1.1em;">${item.title}</strong><ul style="padding-left:20px; margin-top:10px; line-height:1.5;">${item.content}</ul>`;
-      content.appendChild(card);
+      const block = document.createElement('div');
+      block.style.marginBottom = "20px";
+      block.innerHTML = `
+        <strong style="color:var(--highlight); font-size:1.1em; display:block; margin-bottom:5px;">
+          ${item.title}
+        </strong>
+        <div style="padding-left: 10px; border-left: 2px solid var(--highlight); line-height: 1.6;">
+          ${item.content}
+        </div>
+      `;
+      container.appendChild(block);
     });
   }
 }
 
-document.addEventListener('click', () => {
-  if (activeCategory) {
-    document.getElementById('content').innerHTML = '';
-    activeCategory = null;
-  }
-});
+// --- SETUP & UTILS ---
 
-// SERVICE WORKER REGISTRATION
+// Theme Toggle
+const themeBtn = document.getElementById('theme-toggle');
+const body = document.body;
+const savedTheme = localStorage.getItem('ops-theme');
+if (savedTheme === 'light') {
+  body.classList.add('light-mode');
+  if(themeBtn) themeBtn.innerText = '🌙';
+}
+if (themeBtn) {
+  themeBtn.addEventListener('click', () => {
+    body.classList.toggle('light-mode');
+    const isLight = body.classList.contains('light-mode');
+    localStorage.setItem('ops-theme', isLight ? 'light' : 'dark');
+    themeBtn.innerText = isLight ? '🌙' : '☀️';
+  });
+}
+
+// Service Worker
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('./service-worker.js');
     navigator.serviceWorker.addEventListener('message', event => {
       if (event.data.type === 'UPDATE_AVAILABLE') {
         const toast = document.getElementById('update-toast');
-        toast.classList.remove('hidden');
-        toast.onclick = () => window.location.reload();
+        if(toast) {
+          toast.classList.remove('hidden');
+          toast.onclick = () => window.location.reload();
+        }
       }
     });
   });
 }
 
-// RESET LOGIC (Keeping this for you!)
-document.getElementById('reset-btn').addEventListener('click', async () => {
-  if (!confirm("Force refresh all data?")) return;
-  
-  if ('serviceWorker' in navigator) {
-    const registrations = await navigator.serviceWorker.getRegistrations();
-    for (const registration of registrations) await registration.unregister();
-  }
-  const keys = await caches.keys();
-  for (const key of keys) await caches.delete(key);
-  
-  window.location.reload(true);
-});
-
-// THEME TOGGLE LOGIC
-const themeBtn = document.getElementById('theme-toggle');
-const body = document.body;
-
-// 1. Check Saved Preference on Load
-const savedTheme = localStorage.getItem('ops-theme');
-if (savedTheme === 'light') {
-  body.classList.add('light-mode');
-  themeBtn.innerText = '🌙'; // Switch icon to Moon
-}
-
-// 2. Toggle on Click
-if (themeBtn) {
-  themeBtn.addEventListener('click', () => {
-    body.classList.toggle('light-mode');
-    
-    // Save preference
-    if (body.classList.contains('light-mode')) {
-      localStorage.setItem('ops-theme', 'light');
-      themeBtn.innerText = '🌙'; // Moon mode available
-    } else {
-      localStorage.setItem('ops-theme', 'dark');
-      themeBtn.innerText = '☀️'; // Sun mode available
+// Reset Logic
+const resetBtn = document.getElementById('reset-btn');
+if(resetBtn) {
+  resetBtn.addEventListener('click', async () => {
+    if (!confirm("Force refresh all data?")) return;
+    if ('serviceWorker' in navigator) {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      for (const reg of regs) await reg.unregister();
     }
+    const keys = await caches.keys();
+    for (const key of keys) await caches.delete(key);
+    window.location.reload(true);
   });
 }
 
-// ... (Reset Logic)
-// ... (Start App)
+// Start
 loadData();
