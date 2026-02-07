@@ -4,6 +4,11 @@
 
 <img src="data/Crosswind.png" width="100%"/>
 
+## Headwind component
+
+- Max for AIII -> 25kts
+- Max 50kts steady ad 70kts gust
+
 # Weather
 
 ## Alterate Required
@@ -37,10 +42,6 @@
 
 # Landing
 
-## Landing Condition Chart
-
-<img src="data/Landingconditions.png" width="100%"/>
-
 ## LAHSO Limitations
 
 - Runway must be dry
@@ -49,6 +50,16 @@
 - Wx better than 1500/5 (1000/3 if Papi/Vasi avail)
 - No windshear
 - 3kt tailwind max
+
+## Maximum Allowable Clutter
+
+- Water or Slush -> 1 Inch
+- Wet Snow -> 2 Inches
+- Dry Snow -> 6 Inches
+
+## Landing Condition Chart
+
+<img src="data/Landingconditions.png" width="100%"/>
 
 # Emergencies
 
@@ -86,6 +97,12 @@
 ## Minimums Flow Chart
 
 <img src="data/Takeoffmins.png" width="100%"/>
+
+## Maximum Allowable Clutter
+
+- Water or Slush -> 1/2 Inch
+- Wet Snow -> 1 Inch
+- Dry Snow -> 4 Inches
 
 ## Runway Conditions
 
@@ -144,3 +161,11 @@
 - GA and Pattern -> 2000lbs
 - Holding NG -> 75lbs/min (4500/hr)
 - Holding MAX -> 63lbs/min (3800/hr)
+
+# Terminating
+
+## Times
+
+- 30 secs between IRS off and AC off
+- NG 2 minutes between APU off and Bat off
+- MAX 5 minutes between APU off and Bat off
