@@ -14,4 +14,112 @@
   --bg-body: #f8fafc;       /* Very Light Grey */
   --text-main: #0f172a;     /* Dark Text */
   --bg-card: #ffffff;       /* Pure White Cards */
-  --bg-btn: 
+  --bg-btn: #e2e8f0;        /* Light Grey Button */
+  --bg-btn-hover: #cbd5e1;  /* Darker Grey Hover */
+  --highlight: #0284c7;     /* Darker Blue Accent */
+  --shadow: rgba(0,0,0,0.1);
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--bg-body);
+  color: var(--text-main);
+  transition: background 0.3s, color 0.3s;
+}
+
+#app {
+  padding: 20px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+/* Header Area */
+.header-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+#title {
+  margin: 0;
+  font-size: 28px;
+}
+
+.theme-btn {
+  background: none;
+  border: 2px solid var(--bg-btn);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-main);
+  transition: transform 0.2s;
+}
+.theme-btn:active { transform: scale(0.9); }
+
+/* --- THE GRID LAYOUT --- */
+#menu {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* 2 Columns */
+  gap: 15px;
+  align-items: start;
+}
+
+/* --- THE BUTTONS --- */
+.grid-btn {
+  background: var(--bg-btn);
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  user-select: none;
+  box-shadow: 0 4px 6px var(--shadow);
+  transition: transform 0.2s, background 0.2s;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 80px; /* Ensures buttons are nice and square-ish */
+}
+
+.grid-btn:hover { background: var(--bg-btn-hover); }
+.grid-btn:active { transform: scale(0.98); }
+
+.grid-btn.active {
+  background: var(--highlight);
+  color: white;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+}
+
+/* --- THE DRAWER (Updated) --- */
+.drawer {
+  grid-column: 1 / -1; 
+  background: var(--bg-card);
+  overflow: hidden;
+  /* START CLOSED */
+  max-height: 0;
+  opacity: 0;
+  padding: 0 20px; /* Zero vertical padding when closed */
+  margin: 0;       /* Zero margin when closed */
+  
+  border-radius: 12px;
+  box-shadow: inset 0 0 20px rgba(0,0,0,0.2);
+  transition: all 0.3s ease-out; /* Animate everything */
+}
+
+.drawer.open {
+  /* OPEN STATE */
+  max-height: 3000px; /* Big enough for any content */
+  opacity: 1;
+  padding: 20px; /* Restore padding */
+  margin-top: 10px;
+  margin-bottom: 20px;
+  border: 1px solid var(--highlight);
+}

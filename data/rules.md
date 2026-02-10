@@ -129,6 +129,14 @@
 - IR and Logbook info only takeoff warn horn
 - Emergency, written no later than end of pairing (IR)
 
+## Birdstrike
+
+- Suspected birdstrike is birdstrike be careful saying it on ATC
+- Make entry in logbook call dispatch and Mx control
+- Needs condition inspection by Mx
+- Needs IR within 24hrs
+- needs FAA wildlife strike report, may be in IR app
+
 # Holding
 
 ## Speeds
