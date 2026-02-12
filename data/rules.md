@@ -14,6 +14,48 @@
 
 <img src="data/Takeoffconditions.png" width="100%"/>
 
+# Enroute
+
+## Route Changes Contact Dispatch when:
+
+- Lateral deviations greater than 100NM
+- Vertical deviations greater than 4000ft
+- ETA later than 15mins
+
+## Cruise Altitude (light turbulence)
+
+- 3000' below max altitude (NG)
+- 3300' below max altitude (MAX)
+
+# Holding
+
+## Speeds
+
+- Up to and including 6000 -> 200kts, 1min
+- Above 6000 and including 14000 -> 230kts, 1min
+- above 14000 -> 265kts, 1.5min
+
+## Pattern
+
+<img src="data/Holdingpattern.png" width="100%"/>
+
+# Approach
+
+## Approach Summary
+
+<img src="data/ApproachSummary.png" width="100%"/>
+
+# Landing
+
+## LAHSO Limitations
+
+- Runway must be dry
+- Must have some sort of vertical guidance
+- At night MUST have Papi/Vasi
+- Wx better than 1500/5 (1000/3 if Papi/Vasi avail)
+- No windshear
+- 3kt tailwind max
+
 # Wind
 
 ## Wind Component Chart
@@ -24,14 +66,6 @@
 
 - Max for AIII -> 25kts
 - Max 50kts steady ad 70kts gust
-
-# Enroute
-
-## Route Changes Contact Dispatch when:
-
-- Lateral deviations greater than 100NM
-- Vertical deviations greater than 4000ft
-- ETA later than 15mins
 
 # Weather
 
@@ -64,18 +98,6 @@
 
 <img src="data/Alternate_requirements.png" width="100%"/>
 
-# Holding
-
-## Speeds
-
-- Up to and including 6000 -> 200kts, 1min
-- Above 6000 and including 14000 -> 230kts, 1min
-- above 14000 -> 265kts, 1.5min
-
-## Pattern
-
-<img src="data/Holdingpattern.png" width="100%"/>
-
 # New FO
 
 ## Less than 175hr can't land
@@ -88,11 +110,6 @@
 - XWind more than 15kts
 - Windshear reported
 
-# Approach
-
-## Approach Summary
-<img src="data/ApproachSummary.png" width="100%"/>
-
 # Emergencies
 
 ## Land at Nearest Suitable
@@ -104,17 +121,6 @@
 - One AC System remaining
 - One Hydr System remaining (STBY Sys counts)
 
-# Landing
-
-## LAHSO Limitations
-
-- Runway must be dry
-- Must have some sort of vertical guidance
-- At night MUST have Papi/Vasi
-- Wx better than 1500/5 (1000/3 if Papi/Vasi avail)
-- No windshear
-- 3kt tailwind max
-
 ## Maximum Allowable Clutter
 
 - Water or Slush -> 1 Inch
@@ -124,10 +130,6 @@
 ## Landing Condition Chart
 
 <img src="data/Landingconditions.png" width="100%"/>
-
-
-
-
 
 # RVR
 
@@ -177,7 +179,8 @@
 - Two Eng Idle -> 25lbs/min (1500/hr)
 - GA and Pattern -> 2000lbs
 - Holding NG -> 75lbs/min (4500/hr)
-- Holding MAX -> 63lbs/min (3800/hr)
+- Holding MAX -> 65lbs/min (3800/hr)
+- Enroute Burn -> 80lbs/min (4800/hr)
 
 # Terminating
 
