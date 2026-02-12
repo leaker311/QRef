@@ -69,6 +69,10 @@
 
 # Weather
 
+## IFR Planning Flow Chart
+
+<img src="data/IFR_Decision.png" width="100%"/>
+
 ## Alterate Required
 
 - 1hr, 2000ft, 3sm
@@ -97,6 +101,10 @@
 ## Alternate requirements:
 
 <img src="data/Alternate_requirements.png" width="100%"/>
+
+## Stop at ILS critical area
+
+- less than 800/2
 
 # New FO
 
@@ -181,6 +189,12 @@
 - Holding NG -> 75lbs/min (4500/hr)
 - Holding MAX -> 65lbs/min (3800/hr)
 - Enroute Burn -> 80lbs/min (4800/hr)
+
+## PWB Burn Down Message either:
+
+- Exceeded PTOW by 2000#
+- Exceeded MTOW check the real weight if below, go
+- Exceeded ATOG check the real weight if below, go
 
 # Terminating
 
