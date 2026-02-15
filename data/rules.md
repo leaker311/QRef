@@ -2,7 +2,11 @@
 
 ## Minimums Flow Chart
 
-<img src="data/Takeoffmins.png" width="100%"/>
+<img src="data/tominschart.png" width="100%"/>
+
+## Minimums Procedure
+
+<img src="data/tominsprocedure.png" width="100%"/>
 
 ## Maximum Allowable Clutter
 
