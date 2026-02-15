@@ -145,12 +145,6 @@
 
 <img src="data/RV_Table.png" width="100%"/>
 
-# Logbook
-
-## Entry Requirements
-
-- Takeoff Warning Horn - info only
-
 # Reporting
 
 ## See FOM Chapter 22.1 for IR
@@ -203,3 +197,65 @@
 - 30 secs between IRS off and AC off
 - NG 2 minutes between APU off and Bat off
 - MAX 5 minutes between APU off and Bat off
+
+# Logbook
+
+## Info Only
+
+<img src="data/infoonly.png" width="100%"/>
+
+## Condition Inspection
+
+- see FOM 19.2.6.3
+
+## Placarding
+
+- SP #1 Goes next to switch or light
+- SP #1A Goes over the CATIII label
+- SP #1B Goes on the lighting panel by your knee (does not have a clear item)
+- SP #2 Deals with deactivating and collaring CB's
+
+## Intervals (time starts the day after the fault)
+
+- A Critical Function Varies
+- B 3 Days or 72Hrs
+- C 10 Days
+- D 120 Days
+
+## Procedure Authorization
+
+- (M) Has a mx procedure involved must check crew deferral
+- (O) Has an ops procedure involved
+- / Nothing needs to be done
+
+## Life Vest or Seal Missing
+
+- Must inspect empty pouch for security
+- Spare life vests locations AOM 2.3
+- IF you take a spare vest must call mx and get mel relief
+- Seal missing, inspect vest make sure it is still sealed
+- Seal the pouch with security seal
+- Enter employee nr on rear of WN-966
+- If you dont have a seal enter seat location on WN-966 and call mx
+
+## LOTO Box seal missing
+
+- Inspect box to make sure it is not messed with
+- Seal box with security seal, no logbook entry required
+- If you dont have a seal call mx
+
+## Lavatory Seals missing
+
+- One seal missing call dispatch so one is waiting for you at destination nothing else required
+- Two seals missing call mx only they can check panel
+
+## Return Air grille
+
+- Ops Binder 2.6.1
+
+## Threat Levels see ops binder 4.1
+
+- Disruptive, suspicious, threatening behavior Level 1
+- Physically abusive Level 2
+- Threatening with a weapon Level 3
+- Attempted breach of cockpit Level 4
