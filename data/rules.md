@@ -106,6 +106,17 @@
 
 - less than 800/2
 
+## Cold Weather Engine Start
+
+- Both when
+- First start of the day
+- Elevation at or above 2000'
+- Temp below 5C
+- Temps below -40C contact dx before start
+- Temps below -35C wait 2 mins after start before taxi
+- If engine does not start on first try
+- Try again, if start info only, if not dx,mx
+
 # New FO
 
 ## Less than 175hr can't land
