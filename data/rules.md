@@ -49,6 +49,11 @@
 
 <img src="data/ApproachSummary.png" width="100%"/>
 
+## Specifics
+
+- Call approaching mins 100' above, all on baro
+- Except AIII only one where approaching mins is on RA
+
 # Landing
 
 ## LAHSO Limitations
@@ -59,6 +64,16 @@
 - Wx better than 1500/5 (1000/3 if Papi/Vasi avail)
 - No windshear
 - 3kt tailwind max
+
+## Maximum Allowable Clutter
+
+- Water or Slush -> 1 Inch
+- Wet Snow -> 2 Inches
+- Dry Snow -> 6 Inches
+
+## Landing Condition Chart
+
+<img src="data/Landingconditions.png" width="100%"/>
 
 # Wind
 
@@ -143,16 +158,6 @@
 - Cabin Smoke/Fire that does not go away
 - One AC System remaining
 - One Hydr System remaining (STBY Sys counts)
-
-## Maximum Allowable Clutter
-
-- Water or Slush -> 1 Inch
-- Wet Snow -> 2 Inches
-- Dry Snow -> 6 Inches
-
-## Landing Condition Chart
-
-<img src="data/Landingconditions.png" width="100%"/>
 
 # RVR
 
