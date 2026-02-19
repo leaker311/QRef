@@ -2,7 +2,7 @@
 
 ## Minimums Flow Chart
 
-<img src="data/tominschart.png" width="100%"/>
+<img src="data/takeoffminschart.png" width="100%"/>
 
 ## Minimums Procedure
 
