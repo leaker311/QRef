@@ -51,8 +51,20 @@
 
 ## Specifics
 
-- Call approaching mins 100' above, all on baro
+- Call approaching mins 100' above, all on baro if at or above 200' agl
 - Except AIII only one where approaching mins is on RA
+- IF LOC ok but GS out of service check for step down fix, if present load LOC not ILS
+- set TDZE OR next stepdown fix, MAP when no stepdown or after all stepdowns
+
+## Non-Precision on VNAV
+
+- Use DDA (add 50' to MDA, LNAV/VNAV uses published DA)
+- VNAV will disconnect at MAP
+- RWxx points end at runway threshold
+- MXxx, most are after reaching DDA, but some are before
+- Look at MXxx altitude in FMC if alt is higher than DDA the:
+- VNAV does what it does, levels off at that alt, flies straight until MXxx then VNAV disc
+- In this case you will never reach DDA, use v/s the last couple of miles so you cont descend
 
 # Landing
 
@@ -83,6 +95,35 @@
 - More than light freezing rain
 - Known or probable severe icing
 - Known or probable severe turbulence
+
+## Balked Landing
+
+- set Go-Around thrust
+- Keep it on the runway until Vref
+- Rotate to 15degrees
+- At Lift off press TO/GA
+- Flaps 15
+- Landing gear up, set missed approach alt
+
+# Go-Around
+
+## Gotchas
+
+- Climb gradient, look in approach chart it will have a note about climb gradient
+- Climb gradient, enter the most restrictive in the landing PWB grad/alt
+- Climb gradient, in the returned landing data remarks section you will see instructions
+- If TOGA is pressed above 2000' N1 goes to full power.
+
+## Procedures
+
+- GA thrust is about 85%
+- Pitch about 15degr
+- when done: a/p, v/s, a/t-on, speed set, set hdg/LNAV (it defaults to HDG)
+
+## Go-Around is armed when:
+
+- Below 2000'agl
+- Above 2000'agl if the flaps are down or g/s captured
 
 # Wind
 
