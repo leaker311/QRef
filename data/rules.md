@@ -75,6 +75,15 @@
 
 <img src="data/Landingconditions.png" width="100%"/>
 
+## Landing Prohibited
+
+- Wx or Wind exceeded
+- No runway lights at night
+- Contaminated beyond limits
+- More than light freezing rain
+- Known or probable severe icing
+- Known or probable severe turbulence
+
 # Wind
 
 ## Wind Component Chart
