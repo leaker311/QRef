@@ -198,6 +198,13 @@
 - One AC System remaining
 - One Hydr System remaining (STBY Sys counts)
 
+## Overweight Landing
+
+- Run brake cooling
+- Notify station OPS
+- Call Dx, Mx to get condition inspection
+- Write IR
+
 # RVR
 
 ## RVR Conversion Table
