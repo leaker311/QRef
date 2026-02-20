@@ -343,3 +343,15 @@
 ## APU
 
 - Can try to start APU 3 times wait 90 secs between
+
+# Crew Briefing
+
+## Flight Attendants
+
+- Crew verfication
+- Flight segments
+- Weather/turbulence
+- Delays
+- Maintenance
+- FFDO's
+- International, passports, kit, etc
