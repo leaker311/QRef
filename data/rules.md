@@ -18,6 +18,11 @@
 
 <img src="data/Takeoffconditions.png" width="100%"/>
 
+## Climb Gradient
+
+- If on a sid, enter the lowest one
+- If on vectors, DVA, Obstactle DP then most restrictive
+
 # Enroute
 
 ## Route Changes Contact Dispatch when:
