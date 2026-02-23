@@ -101,14 +101,12 @@
 - Known or probable severe icing
 - Known or probable severe turbulence
 
-## Balked Landing
+## MQTW
 
-- set Go-Around thrust
-- Keep it on the runway until Vref
-- Rotate to 15degrees
-- At Lift off press TO/GA
-- Flaps 15
-- Landing gear up, set missed approach alt
+- Minimum Brake Cooling 700, 62 minutes
+- Minimum Brake Cooling 800/MAX, 48 minutes
+- Use actual values in pwb
+- See AOM 12.2.2
 
 # Go-Around
 
@@ -129,6 +127,15 @@
 
 - Below 2000'agl
 - Above 2000'agl if the flaps are down or g/s captured
+
+## Balked Landing
+
+- set Go-Around thrust
+- Keep it on the runway until Vref
+- Rotate to 15degrees
+- At Lift off press TO/GA
+- Flaps 15
+- Landing gear up, set missed approach alt
 
 # Wind
 
@@ -360,3 +367,33 @@
 - Maintenance
 - FFDO's
 - International, passports, kit, etc
+
+# DRIFTDOWN
+
+## Procedures consider speed in CA course ALT in FO course
+
+- Disconnect AT
+- Select CON thrust in FMC
+- x ENG OUT on FMC CRZ page
+- Set Max Alt in mcp
+- lvl chg
+- Set ENG OUT SPD in MCP
+
+# Ground Ops
+
+## Ground Air Start
+
+- Brief ground crew
+- Electric remains connected until after engine start
+- Connect start cart but dont turn on airflow
+- Leave ground air connected to just prior to start
+- AOM 16.7.1.1 for start procedures, look for 30PSI
+- Make sure tug/towbar is safe then gen#1 on
+- Disconnect everything then normal pushback
+
+## Xbleed Start
+
+- AOM 16.7.1.2
+- Basically turn APU bleed and pack switches off
+- Make sure the ISO VALVE is in auto
+- Push throttle up to 30psi min
