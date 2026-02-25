@@ -340,7 +340,7 @@
 
 # Engine and APU
 
-## Engines
+## Engines (L respective xfer bus, R ACstby bus)
 
 - Cold Weather Ignition both when
 - First start of the day
