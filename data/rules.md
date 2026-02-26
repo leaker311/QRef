@@ -353,6 +353,24 @@
 - Motor engine for 5 mins then:
 - Try again, if start info only, if not dx,mx
 
+## Normal Failed start
+
+- AOM 5.5.1
+- IF EGT is not exceeded can evaluate (air source/anti-ice/tail wind)
+- Leave ignition switch where it is and try again
+
+## Start Valve Open
+
+- Go to QRH tells you to turn the switch off
+- Refer to MEL 80 for dispatch requirements
+
+## Fuel leak during start
+
+- Continue start, can run for 5 minutes
+- Max spil 50sq ft (half an engine cowl)
+- If it stops, info only entry
+- If not shutdown and call mx
+
 ## APU
 
 - Can try to start APU 3 times wait 90 secs between
