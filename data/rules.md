@@ -81,6 +81,7 @@
 - Wx better than 1500/5 (1000/3 if Papi/Vasi avail)
 - No windshear
 - 3kt tailwind max
+- Use PWB landing xxL/VV intersection
 
 ## Maximum Allowable Clutter
 
