@@ -416,3 +416,7 @@
 - Basically turn APU bleed and pack switches off
 - Make sure the ISO VALVE is in auto
 - Push throttle up to 30psi min
+
+## ILS Hold Short
+
+- Wx 800/2 or below
