@@ -73,6 +73,12 @@
 
 # Landing
 
+## Moderate/Heavy Rain
+
+- Use 2-MED to POOR
+- Grooved +RA
+- Non-Grooved RA
+
 ## LAHSO Limitations
 
 - Runway must be dry
