@@ -426,3 +426,12 @@
 ## ILS Hold Short
 
 - Wx 800/2 or below
+
+# Diversion see FOM 17.9.1
+
+## On-Line
+
+- Make sure parking brake is set and L1 is cracked, it can then be closed if needed
+- Record IN times
+
+## Off-Line See FOM Table 17.9.2 and FOM 20.2.1
