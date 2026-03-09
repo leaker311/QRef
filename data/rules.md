@@ -73,6 +73,12 @@
 
 # Landing
 
+## Landing Grossweight (max)
+
+- 700 129.2 Tire Speed 195kts
+- 800 146.3 Tire Speed 205kts
+- MAX 151.5 Tire Speed 205kts
+
 ## Moderate/Heavy Rain
 
 - Use 2-MED to POOR
