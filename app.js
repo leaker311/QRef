@@ -9,7 +9,7 @@ if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('./service-worker.js');
 
   navigator.serviceWorker.addEventListener('message', event => {
-    if (event.data.type === 'UPDATE_AVAILABLE') {
+    if (event.data && event.data.type === 'UPDATE_AVAILABLE') {
       const toast = document.getElementById('update-toast');
       if (toast) {
         toast.classList.remove('hidden');

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'qref-ops-v12';
+const CACHE_NAME = 'qref-ops-v13';
 const ASSETS = [
   './',
   './index.html',
@@ -116,8 +116,8 @@ self.addEventListener('fetch', event => {
             return cachedResponse || networkResponse;
           }
 
-          const forCache = networkResponse.clone();
-          await cache.put(event.request, forCache);
+          // Clone FIRST, then cache the clone, return the original.
+          cache.put(event.request, networkResponse.clone()); // no await needed
           return networkResponse;
         })
         .catch(() => null);
