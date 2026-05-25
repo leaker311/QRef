@@ -1,11 +1,11 @@
 let rulesData = {};
 let activeCategory = null;
 
-// 1. DATA LOADING
 async function loadData() {
   try {
-    // Timestamp forces fresh check, Service Worker handles actual caching
-    const res = await fetch(`data/rules.md?t=${Date.now()}`);
+    // Removed the timestamp cache-buster so the Service Worker 
+    // can properly serve the cache and trigger the update banner.
+    const res = await fetch('data/rules.md');
     if (!res.ok) throw new Error("Network response was not ok");
     
     const text = await res.text();
@@ -214,19 +214,21 @@ if ('serviceWorker' in navigator) {
 }
 
 // Reset Logic
-const resetBtn = document.getElementById('reset-btn');
-if(resetBtn) {
-  resetBtn.addEventListener('click', async () => {
-    if (!confirm("Force refresh all data?")) return;
-    if ('serviceWorker' in navigator) {
-      const regs = await navigator.serviceWorker.getRegistrations();
-      for (const reg of regs) await reg.unregister();
-    }
-    const keys = await caches.keys();
-    for (const key of keys) await caches.delete(key);
-    window.location.reload(true);
-  });
-}
+// removed the reset button from the bottom of the screen and this 
+// was the machinery that made it work
+// const resetBtn = document.getElementById('reset-btn');
+// if(resetBtn) {
+//   resetBtn.addEventListener('click', async () => {
+//     if (!confirm("Force refresh all data?")) return;
+//     if ('serviceWorker' in navigator) {
+//       const regs = await navigator.serviceWorker.getRegistrations();
+//       for (const reg of regs) await reg.unregister();
+//     }
+//     const keys = await caches.keys();
+//     for (const key of keys) await caches.delete(key);
+//     window.location.reload(true);
+//   });
+// }
 
 // Start
 loadData();
