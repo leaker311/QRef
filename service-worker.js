@@ -1,4 +1,4 @@
-const CACHE_NAME = 'qref-ops-v9';
+const CACHE_NAME = 'qref-ops-v10';
 const ASSETS = [
   './',
   './index.html',
@@ -50,14 +50,16 @@ self.addEventListener('fetch', event => {
               return cachedResponse || networkResponse;
             }
 
-            // Clone FIRST — one copy for cache, one to compare, original to return
-            const forCache   = networkResponse.clone();
-            const forCompare = networkResponse.clone();
+            // Read the entire body as text ONCE into a plain string.
+            // This completely avoids any clone/body-locked issues.
+            const bodyText = await networkResponse.text();
 
+            // Compare versions using the raw text
             if (cachedResponse) {
               try {
-                const oldData = await cachedResponse.clone().json();
-                const newData = await forCompare.json();
+                const oldText = await cachedResponse.text();
+                const oldData = JSON.parse(oldText);
+                const newData = JSON.parse(bodyText);
                 if (oldData.version !== newData.version) {
                   console.log('[SW] New version detected:', oldData.version, '->', newData.version);
                   const clients = await self.clients.matchAll();
@@ -72,8 +74,19 @@ self.addEventListener('fetch', event => {
               console.log('[SW] No cached version yet — storing baseline.');
             }
 
-            await cache.put(event.request, forCache);
-            return networkResponse;
+            // Build a brand new Response from the text to put in cache.
+            // Never reuse the original networkResponse — its body is consumed.
+            const freshResponse = new Response(bodyText, {
+              status: 200,
+              headers: { 'Content-Type': 'application/json' }
+            });
+            await cache.put(event.request, freshResponse);
+
+            // Return another fresh Response to the app
+            return new Response(bodyText, {
+              status: 200,
+              headers: { 'Content-Type': 'application/json' }
+            });
           })
           .catch(err => {
             console.log('[SW] Offline — skipping version check.', err.message);
@@ -97,15 +110,12 @@ self.addEventListener('fetch', event => {
             return networkResponse;
           }
 
-          // Captive portal guard — don't cache HTML disguised as other assets
           const isHtmlAsset = url.pathname.endsWith('.html') || url.pathname === '/';
           if (!isHtmlAsset && looksLikePortal(networkResponse)) {
             console.warn('[SW] Captive portal on:', event.request.url, '— not caching.');
             return cachedResponse || networkResponse;
           }
 
-          // FIX: clone BEFORE cache.put() so the body isn't locked
-          // when the response is also consumed by the browser
           const forCache = networkResponse.clone();
           await cache.put(event.request, forCache);
           return networkResponse;
