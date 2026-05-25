@@ -148,6 +148,15 @@ function toggleGridCategory(catName, clickedBtn, index, totalItems, drawer) {
   drawer.classList.remove('open');
   void drawer.offsetHeight;
   drawer.classList.add('open');
+  // ── Scroll the tapped button to near the top of the viewport ──
+  // Wait one frame so the drawer is in the DOM and starting to expand,
+  // then scroll. The drawer's height grows over 300ms, but scrolling to
+  // the button's position is independent of that.
+  requestAnimationFrame(() => {
+    const rect = clickedBtn.getBoundingClientRect();
+    const targetY = window.scrollY + rect.top - 20; // 20px breathing room above
+    window.scrollTo({ top: targetY, behavior: 'smooth' });
+  });
 }
 
 function renderCategoryContent(catName, container) {
