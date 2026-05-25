@@ -1,4 +1,4 @@
-# Taaaaakeoff
+# Takeoff
 
 ## Minimums Flow Chart
 
