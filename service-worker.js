@@ -57,7 +57,7 @@ self.addEventListener('fetch', event => {
             // Compare versions using the raw text
             if (cachedResponse) {
               try {
-                const oldText = await cachedResponse.clone.text();
+                const oldText = await cachedResponse.clone().text();
                 const oldData = JSON.parse(oldText);
                 const newData = JSON.parse(bodyText);
                 if (oldData.version !== newData.version) {
