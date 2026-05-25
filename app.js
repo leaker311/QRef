@@ -11,9 +11,27 @@ async function loadData() {
     const text = await res.text();
     rulesData = parseMarkdown(text);
     renderMenu();
+
+    // The data is loaded! Now, quietly ping the version file 
+    // to wake up the Service Worker's background check.
+    checkForUpdates();
+
   } catch (e) {
     console.error("Could not load rules:", e);
     document.getElementById('menu').innerHTML = `<div style="grid-column:1/-1; color:red; text-align:center;">Error loading data. Check internet.</div>`;
+  }
+}
+
+// Trigger the Service Worker proxy
+async function checkForUpdates() {
+  try {
+    // We don't need to do anything with this response in app.js.
+    // Making this request simply forces the Service Worker to intercept it,
+    // compare the versions, and send the UPDATE_AVAILABLE message if needed.
+    await fetch('./version.json');
+  } catch (e) {
+    // If we are completely offline, this safely fails silently.
+    console.log("Offline, skipping update check.");
   }
 }
 
