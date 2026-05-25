@@ -30,59 +30,58 @@ self.addEventListener('fetch', event => {
   event.respondWith(
     caches.open(CACHE_NAME).then(async (cache) => {
       const cachedResponse = await cache.match(event.request);
-      
-      // 1. Prepare the Network Request
-      // If it's rules.md, add a random number to FORCE a real network call
-      let networkRequest = event.request;
-      if (event.request.url.includes('rules.md')) {
+
+      // --- VERSION CHECKING LOGIC ---
+      if (event.request.url.includes('version.json')) {
          const newUrl = new URL(event.request.url);
-         newUrl.searchParams.set('cb', Date.now()); // Cache Buster
-         networkRequest = new Request(newUrl);
+         newUrl.searchParams.set('cb', Date.now()); // Bypass cache for version check
+         const networkRequest = new Request(newUrl);
+
+         const fetchPromise = fetch(networkRequest).then(async (networkResponse) => {
+            if (networkResponse && networkResponse.status === 200) {
+               
+               // Captive Portal Defense
+               const contentType = networkResponse.headers.get('content-type') || '';
+               if (contentType.includes('text/html')) {
+                  console.warn('Captive portal detected. Skipping version check.');
+                  return networkResponse;
+               }
+
+               const responseToCache = networkResponse.clone();
+               const responseToCompare = networkResponse.clone();
+
+               if (cachedResponse) {
+                 // Compare the JSON versions
+                 const oldData = await cachedResponse.clone().json();
+                 const newData = await responseToCompare.json();
+                 
+                 if (oldData.version !== newData.version) {
+                   // A new version exists! Tell the app to show the UI banner.
+                   self.clients.matchAll().then(clients => {
+                     clients.forEach(client => client.postMessage({ type: 'UPDATE_AVAILABLE' }));
+                   });
+                 }
+               }
+               
+               await cache.put(event.request, responseToCache);
+            }
+            return networkResponse;
+         }).catch(() => { /* Offline, do nothing */ });
+
+         event.waitUntil(fetchPromise);
+         return cachedResponse || fetchPromise;
       }
 
-      // 2. Fetch Logic
-      const fetchPromise = fetch(networkRequest)
-        .then(async (networkResponse) => {
-          if (networkResponse && networkResponse.status === 200) {
-            
-            // IMPORTANT: We must store it using the ORIGINAL request (clean URL)
-            // or the app won't find it later.
-            const responseToCache = networkResponse.clone();
-            const responseToCompare = networkResponse.clone();
+      // --- NORMAL FILE CACHING (Images, HTML, JS, Markdown) ---
+      // If it's not the version file, use standard Stale-While-Revalidate
+      const fetchPromise = fetch(event.request).then(async (networkResponse) => {
+         if (networkResponse && networkResponse.status === 200) {
+            await cache.put(event.request, networkResponse.clone());
+         }
+         return networkResponse;
+      }).catch(() => { /* Offline fallback */ });
 
-            if (event.request.url.includes('rules.md')) {
-              let shouldNotify = false;
-              
-              if (cachedResponse) {
-                const oldText = await cachedResponse.clone().text();
-                const newText = await responseToCompare.text();
-                if (oldText !== newText) {
-                  shouldNotify = true;
-                }
-              } else {
-                // First load ever? Don't notify, just show.
-                shouldNotify = false;
-              }
-
-              // Save to cache using the CLEAN event.request (no timestamp)
-              await cache.put(event.request, responseToCache);
-
-              if (shouldNotify) {
-                self.clients.matchAll().then(clients => {
-                  clients.forEach(client => client.postMessage({ type: 'UPDATE_AVAILABLE' }));
-                });
-              }
-            } else {
-              // Normal caching for other files
-              cache.put(event.request, responseToCache);
-            }
-          }
-          return networkResponse;
-        })
-        .catch(() => {
-          // Offline fallback
-        });
-
+      event.waitUntil(fetchPromise);
       return cachedResponse || fetchPromise;
     })
   );

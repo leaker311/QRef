@@ -123,3 +123,40 @@ body {
   margin-bottom: 20px;
   border: 1px solid var(--highlight);
 }
+
+/* --- UPDATE TOAST BANNER --- */
+#update-toast {
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: var(--highlight); /* Uses your existing theme blue */
+  color: #ffffff;
+  padding: 15px 25px;
+  border-radius: 30px;
+  font-weight: bold;
+  font-size: 16px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+  cursor: pointer;
+  z-index: 9999;
+  text-align: center;
+  width: max-content;
+  max-width: 90%;
+  
+  /* Smooth slide-up animation */
+  transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Button press effect */
+#update-toast:active {
+  transform: translateX(-50%) scale(0.95);
+}
+
+/* The hidden state. 
+  Pushes the banner down 20px and fades it out so it slides up when triggered.
+*/
+#update-toast.hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-50%) translateY(20px);
+}
