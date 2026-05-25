@@ -1,4 +1,4 @@
-const CACHE_NAME = 'qref-ops-v13';
+const CACHE_NAME = 'qref-ops-v14';
 const SHELL_ASSETS = [
   './',
   './index.html',
