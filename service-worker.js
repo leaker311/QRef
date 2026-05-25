@@ -1,129 +1,92 @@
 const CACHE_NAME = 'qref-ops-v13';
-const ASSETS = [
+const SHELL_ASSETS = [
   './',
   './index.html',
   './style.css',
   './app.js',
   './manifest.json',
+  './data/rules.md',
 ];
 
+// ── INSTALL: cache the app shell ─────────────────────────────────────────────
 self.addEventListener('install', event => {
   self.skipWaiting();
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS))
+    caches.open(CACHE_NAME).then(cache => cache.addAll(SHELL_ASSETS))
   );
 });
 
+// ── ACTIVATE: clean up old cache versions ────────────────────────────────────
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys()
       .then(keys => Promise.all(
-        keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key))
+        keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))
       ))
       .then(() => self.clients.claim())
   );
 });
 
-function looksLikePortal(response) {
-  const ct = response.headers.get('content-type') || '';
-  return ct.includes('text/html');
-}
-
+// ── FETCH: cache-first, no background revalidation ───────────────────────────
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
 
-  const url = new URL(event.request.url);
-
-  // ── VERSION CHECK ──────────────────────────────────────────────────────────
-  if (url.pathname.endsWith('version.json')) {
-    event.respondWith(
-      caches.open(CACHE_NAME).then(async cache => {
-        const cachedResponse = await cache.match(event.request);
-
-        const networkPromise = fetch(event.request.url, { cache: 'no-store' })
-          .then(async networkResponse => {
-            if (!networkResponse || networkResponse.status !== 200) {
-              return cachedResponse;
-            }
-            if (looksLikePortal(networkResponse)) {
-              console.warn('[SW] Captive portal on version check — skipping.');
-              return cachedResponse ? cachedResponse.clone() : networkResponse;
-            }
-
-            // Read the entire body as text ONCE into a plain string.
-            // This completely avoids any clone/body-locked issues.
-            const bodyText = await networkResponse.text();
-
-            // Compare versions using the raw text
-            if (cachedResponse) {
-              try {
-                const oldText = await cachedResponse.clone().text();
-                const oldData = JSON.parse(oldText);
-                const newData = JSON.parse(bodyText);
-                if (oldData.version !== newData.version) {
-                  console.log('[SW] New version detected:', oldData.version, '->', newData.version);
-                  const clients = await self.clients.matchAll();
-                  clients.forEach(client => client.postMessage({ type: 'UPDATE_AVAILABLE' }));
-                } else {
-                  console.log('[SW] Version unchanged:', oldData.version);
-                }
-              } catch (e) {
-                console.warn('[SW] Version compare failed:', e);
-              }
-            } else {
-              console.log('[SW] No cached version yet — storing baseline.');
-            }
-
-            // Build a brand new Response from the text to put in cache.
-            // Never reuse the original networkResponse — its body is consumed.
-            const freshResponse = new Response(bodyText, {
-              status: 200,
-              headers: { 'Content-Type': 'application/json' }
-            });
-            await cache.put(event.request, freshResponse);
-
-            // Return another fresh Response to the app
-            return new Response(bodyText, {
-              status: 200,
-              headers: { 'Content-Type': 'application/json' }
-            });
-          })
-          .catch(err => {
-            console.log('[SW] Offline — skipping version check.', err.message);
-            return cachedResponse;
-          });
-
-        return cachedResponse || networkPromise;
-      })
-    );
-    return;
-  }
-
-  // ── ALL OTHER REQUESTS: cache-first, revalidate in background ─────────────
   event.respondWith(
-    caches.open(CACHE_NAME).then(async cache => {
-      const cachedResponse = await cache.match(event.request);
-
-      const networkPromise = fetch(event.request)
-        .then(async networkResponse => {
-          if (!networkResponse || networkResponse.status !== 200) {
-            return networkResponse;
-          }
-
-          const isHtmlAsset = url.pathname.endsWith('.html') || url.pathname === '/';
-          if (!isHtmlAsset && looksLikePortal(networkResponse)) {
-            console.warn('[SW] Captive portal on:', event.request.url, '— not caching.');
-            return cachedResponse || networkResponse;
-          }
-
-          // Clone FIRST, then cache the clone, return the original.
-          cache.put(event.request, networkResponse.clone()); // no await needed
-          return networkResponse;
-        })
-        .catch(() => null);
-
-      event.waitUntil(networkPromise);
-      return cachedResponse || networkPromise;
-    })
+    caches.match(event.request).then(cached => cached || fetch(event.request))
   );
 });
+
+// ── MESSAGE: handle manual update requests from the page ─────────────────────
+self.addEventListener('message', event => {
+  if (!event.data || event.data.type !== 'UPDATE_CACHE') return;
+
+  event.waitUntil(updateCache(event.source));
+});
+
+async function updateCache(client) {
+  try {
+    const cache = await caches.open(CACHE_NAME);
+
+    // 1. Refetch the shell. cache:'reload' bypasses the HTTP cache.
+    for (const url of SHELL_ASSETS) {
+      const res = await fetch(url, { cache: 'reload' });
+      if (!res.ok) throw new Error(`${url} returned ${res.status}`);
+      await cache.put(url, res.clone());
+    }
+
+    // 2. Parse the freshly-downloaded rules.md to find PNG references.
+    const rulesRes = await cache.match('./data/rules.md');
+    const rulesText = await rulesRes.text();
+    const imageUrls = extractImageUrls(rulesText);
+
+    // 3. Fetch and cache every referenced image.
+    for (const url of imageUrls) {
+      const res = await fetch(url, { cache: 'reload' });
+      if (!res.ok) throw new Error(`${url} returned ${res.status}`);
+      await cache.put(url, res.clone());
+    }
+
+    client.postMessage({
+      type: 'UPDATE_RESULT',
+      ok: true,
+      count: SHELL_ASSETS.length + imageUrls.length,
+    });
+  } catch (err) {
+    client.postMessage({
+      type: 'UPDATE_RESULT',
+      ok: false,
+      error: err.message || String(err),
+    });
+  }
+}
+
+function extractImageUrls(markdown) {
+  const urls = new Set();
+  // Matches src="..." or src='...'
+  const re = /<img[^>]+src=["']([^"']+)["']/gi;
+  let m;
+  while ((m = re.exec(markdown)) !== null) {
+    urls.add(m[1]);
+  }
+  return [...urls];
+}

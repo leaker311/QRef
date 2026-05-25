@@ -2,38 +2,23 @@ let rulesData = {};
 let activeCategory = null;
 
 // ── SERVICE WORKER ────────────────────────────────────────────────────────────
-// FIX: Register the SW and attach the message listener BEFORE calling loadData().
-// Previously the listener was at the bottom of the file, so if the SW sent
-// UPDATE_AVAILABLE before that code ran the message was silently dropped.
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('./service-worker.js');
 
   navigator.serviceWorker.addEventListener('message', event => {
-    if (event.data && event.data.type === 'UPDATE_AVAILABLE') {
-      const toast = document.getElementById('update-toast');
-      if (toast) {
-        toast.classList.remove('hidden');
-        toast.onclick = () => window.location.reload();
-      }
-    }
+    if (!event.data || event.data.type !== 'UPDATE_RESULT') return;
+    handleUpdateResult(event.data);
   });
 }
 
 // ── DATA LOADING ──────────────────────────────────────────────────────────────
 async function loadData() {
   try {
-    // No cache-buster here — we WANT the SW to serve from cache first.
     const res = await fetch('data/rules.md');
     if (!res.ok) throw new Error('Network response was not ok');
-
     const text = await res.text();
     rulesData = parseMarkdown(text);
     renderMenu();
-
-    // Ping version.json to trigger the SW's background version check.
-    // The SW handles everything; we don't need to do anything with the result.
-    checkForUpdates();
-
   } catch (e) {
     console.error('Could not load rules:', e);
     document.getElementById('menu').innerHTML =
@@ -41,21 +26,45 @@ async function loadData() {
   }
 }
 
-async function checkForUpdates() {
-  try {
-    // Fetching version.json triggers the SW's version-compare logic.
-    // The SW will postMessage UPDATE_AVAILABLE if a new version exists.
-    await fetch('./version.json');
-  } catch (e) {
-    console.log('Offline, skipping update check.');
+// ── UPDATE BUTTON ─────────────────────────────────────────────────────────────
+const updateBtn = document.getElementById('update-toast');
+
+function setUpdateButtonState(state, message) {
+  updateBtn.classList.remove('updating', 'error', 'success');
+  if (state) updateBtn.classList.add(state);
+  updateBtn.textContent = message;
+}
+
+if (updateBtn) {
+  updateBtn.classList.remove('hidden');
+  setUpdateButtonState(null, 'Update');
+
+  updateBtn.addEventListener('click', () => {
+    if (updateBtn.classList.contains('updating')) return;
+
+    if (!navigator.serviceWorker.controller) {
+      setUpdateButtonState('error', 'Update failed: service worker not ready. Reload the page and try again.');
+      return;
+    }
+
+    setUpdateButtonState('updating', 'Updating…');
+    navigator.serviceWorker.controller.postMessage({ type: 'UPDATE_CACHE' });
+  });
+}
+
+function handleUpdateResult(data) {
+  if (data.ok) {
+    setUpdateButtonState('success', `Updated ${data.count} files. Reloading…`);
+    setTimeout(() => window.location.reload(), 800);
+  } else {
+    setUpdateButtonState('error', `Update failed: ${data.error}`);
   }
 }
 
-// ── PARSER (Supports Images and Text) ────────────────────────────────────────
+// ── PARSER (Supports inline <img> HTML and text) ─────────────────────────────
 function parseMarkdown(md) {
   const lines = md.split('\n');
   let currentCategory = null;
-  let currentTitle = null;
   let data = {};
 
   lines.forEach(line => {
@@ -66,9 +75,9 @@ function parseMarkdown(md) {
       currentCategory = cleanLine.replace('# ', '').trim();
       data[currentCategory] = [];
     } else if (cleanLine.startsWith('## ')) {
-      currentTitle = cleanLine.replace('## ', '').trim();
+      const title = cleanLine.replace('## ', '').trim();
       if (currentCategory) {
-        data[currentCategory].push({ title: currentTitle, content: '' });
+        data[currentCategory].push({ title, content: '' });
       }
     } else if (cleanLine.startsWith('* ') || cleanLine.startsWith('- ')) {
       if (currentCategory && data[currentCategory] && data[currentCategory].length > 0) {
@@ -85,7 +94,7 @@ function parseMarkdown(md) {
   return data;
 }
 
-// ── RENDER MENU (Grid + Hidden Drawer) ───────────────────────────────────────
+// ── RENDER MENU ──────────────────────────────────────────────────────────────
 function renderMenu() {
   const menu = document.getElementById('menu');
   menu.innerHTML = '';
@@ -100,12 +109,10 @@ function renderMenu() {
     const btn = document.createElement('div');
     btn.className = 'grid-btn';
     btn.innerText = catName;
-
     btn.onclick = (e) => {
       e.stopPropagation();
       toggleGridCategory(catName, btn, index, categories.length, drawer);
     };
-
     menu.appendChild(btn);
   });
 }
@@ -132,7 +139,6 @@ function toggleGridCategory(catName, clickedBtn, index, totalItems, drawer) {
   if (targetIndex >= totalItems) targetIndex = index;
 
   const referenceNode = allBtns[targetIndex];
-
   if (referenceNode && referenceNode.nextSibling) {
     menu.insertBefore(drawer, referenceNode.nextSibling);
   } else {
@@ -140,17 +146,15 @@ function toggleGridCategory(catName, clickedBtn, index, totalItems, drawer) {
   }
 
   drawer.classList.remove('open');
-  void drawer.offsetHeight; // force reflow
+  void drawer.offsetHeight;
   drawer.classList.add('open');
 }
 
 function renderCategoryContent(catName, container) {
-  container.innerHTML = '';
   container.innerHTML =
     `<div style="text-align:right; margin-bottom:15px; color:#64748b; font-size:12px; font-weight:bold; letter-spacing:0.5px;">TAP BUTTON TO CLOSE</div>`;
 
   const items = rulesData[catName];
-
   if (!items || items.length === 0) {
     container.innerHTML +=
       `<div style="padding:20px; text-align:center; color:#94a3b8; font-style:italic;">No data found for this category.</div>`;

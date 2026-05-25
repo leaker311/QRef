@@ -160,3 +160,17 @@ body {
   pointer-events: none;
   transform: translateX(-50%) translateY(20px);
 }
+#update-toast.updating {
+  background-color: #64748b;
+  cursor: wait;
+}
+#update-toast.success {
+  background-color: #16a34a;
+}
+#update-toast.error {
+  background-color: #dc2626;
+  max-width: 90%;
+  white-space: normal;
+  line-height: 1.4;
+  padding: 12px 20px;
+}
