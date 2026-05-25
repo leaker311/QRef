@@ -1,4 +1,4 @@
-const CACHE_NAME = 'qref-ops-v8';
+const CACHE_NAME = 'qref-ops-v9';
 const ASSETS = [
   './',
   './index.html',
@@ -40,48 +40,46 @@ self.addEventListener('fetch', event => {
       caches.open(CACHE_NAME).then(async cache => {
         const cachedResponse = await cache.match(event.request);
 
-        const networkPromise = fetch(event.request.url, {
-          // KEY FIX: bypass the browser's own HTTP cache entirely.
-          // GitHub Pages sets max-age=600, so without this the browser
-          // returns a stale copy and the SW never sees the new file.
-          cache: 'no-store'
-        }).then(async networkResponse => {
-          if (!networkResponse || networkResponse.status !== 200) return cachedResponse;
-
-          if (looksLikePortal(networkResponse)) {
-            console.warn('[SW] Captive portal on version check — skipping.');
-            return cachedResponse || networkResponse;
-          }
-
-          const forCache   = networkResponse.clone();
-          const forCompare = networkResponse.clone();
-
-          if (cachedResponse) {
-            try {
-              const oldData = await cachedResponse.clone().json();
-              const newData = await forCompare.json();
-              if (oldData.version !== newData.version) {
-                console.log('[SW] New version detected:', oldData.version, '->', newData.version);
-                const clients = await self.clients.matchAll();
-                clients.forEach(client => client.postMessage({ type: 'UPDATE_AVAILABLE' }));
-              }
-            } catch (e) {
-              console.warn('[SW] Version compare failed:', e);
+        const networkPromise = fetch(event.request.url, { cache: 'no-store' })
+          .then(async networkResponse => {
+            if (!networkResponse || networkResponse.status !== 200) {
+              return cachedResponse;
             }
-          } else {
-            console.log('[SW] No cached version yet — storing baseline.');
-          }
+            if (looksLikePortal(networkResponse)) {
+              console.warn('[SW] Captive portal on version check — skipping.');
+              return cachedResponse || networkResponse;
+            }
 
-          // Always store under the original URL (no cache-buster in key)
-          await cache.put(event.request, forCache);
-          return networkResponse;
+            // Clone FIRST — one copy for cache, one to compare, original to return
+            const forCache   = networkResponse.clone();
+            const forCompare = networkResponse.clone();
 
-        }).catch(err => {
-          console.log('[SW] Offline or fetch failed — skipping version check.', err);
-          return cachedResponse;
-        });
+            if (cachedResponse) {
+              try {
+                const oldData = await cachedResponse.clone().json();
+                const newData = await forCompare.json();
+                if (oldData.version !== newData.version) {
+                  console.log('[SW] New version detected:', oldData.version, '->', newData.version);
+                  const clients = await self.clients.matchAll();
+                  clients.forEach(client => client.postMessage({ type: 'UPDATE_AVAILABLE' }));
+                } else {
+                  console.log('[SW] Version unchanged:', oldData.version);
+                }
+              } catch (e) {
+                console.warn('[SW] Version compare failed:', e);
+              }
+            } else {
+              console.log('[SW] No cached version yet — storing baseline.');
+            }
 
-        // Serve cache immediately; version check is fire-and-forget
+            await cache.put(event.request, forCache);
+            return networkResponse;
+          })
+          .catch(err => {
+            console.log('[SW] Offline — skipping version check.', err.message);
+            return cachedResponse;
+          });
+
         return cachedResponse || networkPromise;
       })
     );
@@ -93,18 +91,26 @@ self.addEventListener('fetch', event => {
     caches.open(CACHE_NAME).then(async cache => {
       const cachedResponse = await cache.match(event.request);
 
-      const networkPromise = fetch(event.request).then(async networkResponse => {
-        if (!networkResponse || networkResponse.status !== 200) return networkResponse;
+      const networkPromise = fetch(event.request)
+        .then(async networkResponse => {
+          if (!networkResponse || networkResponse.status !== 200) {
+            return networkResponse;
+          }
 
-        const isHtmlAsset = url.pathname.endsWith('.html') || url.pathname === '/';
-        if (!isHtmlAsset && looksLikePortal(networkResponse)) {
-          console.warn('[SW] Captive portal on:', event.request.url, '— not caching.');
-          return cachedResponse || networkResponse;
-        }
+          // Captive portal guard — don't cache HTML disguised as other assets
+          const isHtmlAsset = url.pathname.endsWith('.html') || url.pathname === '/';
+          if (!isHtmlAsset && looksLikePortal(networkResponse)) {
+            console.warn('[SW] Captive portal on:', event.request.url, '— not caching.');
+            return cachedResponse || networkResponse;
+          }
 
-        await cache.put(event.request, networkResponse.clone());
-        return networkResponse;
-      }).catch(() => null);
+          // FIX: clone BEFORE cache.put() so the body isn't locked
+          // when the response is also consumed by the browser
+          const forCache = networkResponse.clone();
+          await cache.put(event.request, forCache);
+          return networkResponse;
+        })
+        .catch(() => null);
 
       event.waitUntil(networkPromise);
       return cachedResponse || networkPromise;
