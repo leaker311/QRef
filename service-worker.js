@@ -1,4 +1,4 @@
-const CACHE_NAME = 'qref-ops-v10';
+const CACHE_NAME = 'qref-ops-v11';
 const ASSETS = [
   './',
   './index.html',
@@ -47,7 +47,7 @@ self.addEventListener('fetch', event => {
             }
             if (looksLikePortal(networkResponse)) {
               console.warn('[SW] Captive portal on version check — skipping.');
-              return cachedResponse || networkResponse;
+              return cachedResponse ? cachedResponse.clone() : networkResponse;
             }
 
             // Read the entire body as text ONCE into a plain string.
@@ -57,7 +57,7 @@ self.addEventListener('fetch', event => {
             // Compare versions using the raw text
             if (cachedResponse) {
               try {
-                const oldText = await cachedResponse.text();
+                const oldText = await cachedResponse.clone.text();
                 const oldData = JSON.parse(oldText);
                 const newData = JSON.parse(bodyText);
                 if (oldData.version !== newData.version) {
